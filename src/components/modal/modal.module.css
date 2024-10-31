@@ -1,0 +1,144 @@
+@import url(../../index.css);
+
+
+.btn_cerrar{
+    position: absolute;
+    z-index: 1001;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    border-radius: .2rem;
+    padding: .1rem;
+    background-color: red;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: white;
+}
+.modal{
+    position: fixed; 
+    top: 12%;
+    left: 0;
+    right: 0;
+    width: 85%;
+    max-width: 600px;
+    max-height: 80%;
+    overflow-y: auto;
+    margin: 0 auto;
+    height: max-content;
+    background: white;
+    z-index: 1000; 
+    border-radius: 5px;
+}
+.div_modal{
+    padding: 20px;
+    padding-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.campos{
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+@media(min-width:600px){
+    .campos img{
+        max-width: 60%;
+    }
+}
+.campos input{
+    width: 5rem;
+}
+.campos div{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 0 auto;
+    max-width: 20rem;
+    gap: 1rem;
+}
+.campos div p{
+    font-size: 1.5rem;
+    background-color: blue;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+}
+.campos input, textarea{
+    padding: .3rem;
+    border-radius: .3rem;
+    filter: brightness(.9);
+    font-size: 1.1rem;
+}
+
+
+.campos textarea{
+    resize: none;
+}
+.articulo_nombre{
+    background-color: rgba(207, 207, 207, 0.9);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    width: 100%;
+    border-bottom: solid 1px rgb(206, 206, 206);
+}
+.articulo_nombre h5{
+    margin: 0 auto;
+    max-width: 80%;
+    padding: .8rem;
+    font-size: 1rem;
+    font-weight: normal;
+    text-align: center;
+}
+.articulo_img{
+    width: 80%;
+    margin: 0 auto;
+}
+.articulo_descripcion{
+    text-align: justify;
+    margin: 1rem 0;
+}
+.articulo_precio{
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: .5rem;
+}
+.div_campos{
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.div_precio{
+    display: flex;
+    flex-direction: column;
+}
+.div_cantidad{
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.div_cantidad div{
+    display: flex;
+    justify-content: center;
+    gap: .3rem;
+    position: absolute;
+    bottom: -1.5rem;
+    left: -1rem;
+}
+.total{
+    color: var(--color-principal);
+    filter: brightness(.4);
+    font-weight: bold;
+}
