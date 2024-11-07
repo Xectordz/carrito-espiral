@@ -94,7 +94,7 @@ export const CarritoProvider = ({ children }) => {
         : [...prevCarrito, { ...producto, cantidad: 1 }];
   
 
-      localStorage.setItem('carrito', JSON.stringify(carritoBase64)); // Sincronizar con localStorage
+      localStorage.setItem('carrito', JSON.stringify(nuevoCarrito)); // Sincronizar con localStorage
       return nuevoCarrito;
     });
     setAlerta(true);

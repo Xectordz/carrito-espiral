@@ -314,8 +314,8 @@ export default function Carrito() {
                             <p className={styles.cantidad_lotes}>Cant. por lotes: </p>
                           )}
                           {
-                            item.lotesArticulos && item.lotesArticulos.map(lote=>(
-                                <p>{lote.nomalmacen}: {lote.cantidadLote}</p>
+                            item.lotesArticulos && item.lotesArticulos.map((lote, index)=>(
+                                <p key={index}>{lote.nomalmacen}: {lote.cantidadLote}</p>
                             ))
                           }
                       </div>
