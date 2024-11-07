@@ -22,7 +22,7 @@ import useGrupoLinea from "../../customHook/useGrupoLinea"
 /*Componente Articulos*/
 export default function Articulos() {
   const { lineaId } = useGrupoLinea();
-  const { alerta, handleAgregar, view, setView, cantidad, setCantidad, precioArticulo, setPrecioArticulo, notas, setNotas, descuento, setDescuento, total, setTotal, apiURL } = useCarrito(); // extraccion de variables o funciones reciclables del contecto carrito
+  const { alerta, cantidad, setCantidad, handleAgregar, view, setView, precioArticulo, setPrecioArticulo, notas, setNotas, descuento, setDescuento, total, setTotal, apiURL } = useCarrito(); // extraccion de variables o funciones reciclables del contecto carrito
   //const { lineaId } = useParams(); // extraccion del parametro pasado de la ruta anterior que contiene el id de la linea
   const [loading, setLoading] = useState(true); // variable local de loading
   const [articulos, setArticulos] = useState([]); // variable donde se almacenaran los articulos ya filtrados que coinciden con el id de lineas
@@ -31,6 +31,7 @@ export default function Articulos() {
   const [alertaModal, setAlertaModal] = useState(false);//variable para activar o desactivar alerta de modal
   const [ordenarPor, setOrdenarPor] = useState(false); //variable para activar o desactivar las opciones de ordenar articulos
   const navigate = useNavigate();
+  const [lotesArticulos ,setLotesArticulos] = useState([]);
 
   
   
@@ -39,7 +40,7 @@ export default function Articulos() {
     seleccionada*/
   useEffect(() => {
     setLoading(true);
-    fetch(`${apiURL}/get_articulo_json`)
+    fetch(`${apiURL}/get_catalogos_json/articulos`)
       .then(res => res.json())
       .then(data => {
         const filteredArticulos = data.filter(articulo => String(articulo.Linea_Articulo_id) === String(lineaId));
@@ -72,15 +73,23 @@ export default function Articulos() {
       }, 2000);
       return;
     }
-    const itemToAdd = ({ ...articuloCarrito, cantidad, notas, precioArticulo, descuento });
+    const itemToAdd = { 
+      ...articuloCarrito, 
+      cantidad, 
+      "cantGlobal": cantidad,
+      notas,
+      precioArticulo, 
+      descuento, 
+      lotesArticulos 
+    };
     handleAgregar(itemToAdd);
-    console.log(itemToAdd);
     setModal(false);
     setNotas("");
     setCantidad(1);
     setDescuento(0);
     setPrecioArticulo(10);
   };
+  
 
   /*Esta funcion agrega un articulo
     desde la vista general, sin necesidad
@@ -92,6 +101,7 @@ export default function Articulos() {
 
   const closeModal = () => {
     setModal(false);
+    setPrecioArticulo(10);
   };
 
   useEffect(() => {
@@ -195,9 +205,11 @@ export default function Articulos() {
                             <p className={`producto_descuento`}>Descuento: {`${descuento} %`}</p>
                             <button onClick={(e) => {
                                 e.stopPropagation();
-                                handleAgregarArticulos(articulo);
+                                //handleAgregarArticulos(articulo);
+                                setModal(true);
                             }}>
-                              Agregar <span><MdAddShoppingCart /></span>
+                              {/*Agregar <span><MdAddShoppingCart /></span>*/}
+                              Ver mas
                             </button>
                         </div>
                     </div>
@@ -227,18 +239,12 @@ export default function Articulos() {
         <>
         <Modal
           articuloCarrito={articuloCarrito}
-          cantidad={cantidad}
-          setCantidad={setCantidad}
-          notas={notas}
-          setNotas={setNotas}
-          total={total}
           handleSubmit={handleSubmit}
           closeModal={closeModal}
           alertaModal={alertaModal}
-          precioArticulo={precioArticulo}
-          setPrecioArticulo={setPrecioArticulo}
-          descuento={descuento}
-          setDescuento={setDescuento}
+          lotesArticulos={lotesArticulos}
+          setLotesArticulos={setLotesArticulos}
+
         />
         </>
       )}

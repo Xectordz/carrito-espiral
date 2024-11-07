@@ -8,14 +8,31 @@ import { BiLogOut } from "react-icons/bi";
 export default function Inicio() {
   const { setCliente, usuario, setUsuario } = useCarrito();
   const [clienteInput, setClienteInput] = useState('');
+  const [claveInput, setClaveInput] = useState('');
   const [fechaInput, setFechaInput] = useState('');
-  const [obsInput, setObsInput] = useState("");
-  const [isListVisible, setIsListVisible] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [obsInput, setObsInput] = useState('');
+  const [isClienteListVisible, setIsClienteListVisible] = useState(false);
+  const [isClaveListVisible, setIsClaveListVisible] = useState(false);
+  const [selectedClienteIndex, setSelectedClienteIndex] = useState(-1);
+  const [selectedClaveIndex, setSelectedClaveIndex] = useState(-1);
   const [alerta, setAlerta] = useState(false);
-  const options = ['Cliente 1', 'Cliente 2', 'Cliente 3', "Cliente 4", "Cliente 5" , "Hector Rodriguez", "Hector Reyes"];
+
+  const options = [
+    {
+      "id": 13645,
+      "clave": "A1369",
+      "nombre": "Proveedora de la Laguna"
+    },
+    {
+      "id": 53645,
+      "clave": "b1369",
+      "nombre": "Constructira Azteca"
+    }
+  ];
+
   const navigate = useNavigate();
-  const listRef = useRef();
+  const clienteListRef = useRef();
+  const claveListRef = useRef();
   const inputRef = useRef();
 
   useEffect(() => {
@@ -25,13 +42,13 @@ export default function Inicio() {
     setFechaInput(formattedDate);
   }, []);
 
-  
-  
-
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (listRef.current && !listRef.current.contains(event.target)) {
-        setIsListVisible(false);
+      if (clienteListRef.current && !clienteListRef.current.contains(event.target)) {
+        setIsClienteListVisible(false);
+      }
+      if (claveListRef.current && !claveListRef.current.contains(event.target)) {
+        setIsClaveListVisible(false);
       }
     };
 
@@ -47,15 +64,15 @@ export default function Inicio() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const exist = options.filter(option=>option === clienteInput);
+    const exist = options.filter(option => option.nombre.toLowerCase() === clienteInput.toLowerCase());
 
     if (exist.length > 0) {
       const nuevoCliente = {
-        cliente: clienteInput,
+        cliente: exist[0].nombre,
         fecha: fechaInput,
         obs: obsInput,
-        clave_cliente: 12312, 
-        cliente_id: 123123
+        clave_cliente: exist[0].clave,
+        cliente_id: exist[0].id
       };
       setCliente(nuevoCliente);
       localStorage.setItem('cliente', JSON.stringify(nuevoCliente));
@@ -63,6 +80,7 @@ export default function Inicio() {
       localStorage.setItem("existeCliente", "true");
       scrollToTop();
       setAlerta(false);
+      console.log(nuevoCliente);
     } else {
       setAlerta(true);
       setTimeout(() => {
@@ -71,49 +89,78 @@ export default function Inicio() {
     }
   };
 
-  const handleSearchClick = () => {
+  const handleSearchClienteClick = () => {
     if (clienteInput) {
-      const coincide = options.filter(option => option.toLowerCase().includes(clienteInput.toLowerCase()));
-      setIsListVisible(coincide.length > 0);
-      setSelectedIndex(-1); // Resetear el índice
-      inputRef.current.focus(); //mantener el foco en input para poder desplazarte en los resultados de clientes
+      const coincide = options.filter(option => option.nombre.toLowerCase().includes(clienteInput.toLowerCase()));
+      setIsClienteListVisible(coincide.length > 0);
+      setSelectedClienteIndex(-1);
+      inputRef.current.focus();
     }
   };
 
-  const handleOptionClick = (option) => {
-    setClienteInput(option);
-    setIsListVisible(false);
+  const handleSearchClaveClick = () => {
+    if (claveInput) {
+      const coincide = options.filter(option => option.clave.toLowerCase().includes(claveInput.toLowerCase()));
+      setIsClaveListVisible(coincide.length > 0);
+      setSelectedClaveIndex(-1);
+      inputRef.current.focus();
+    }
+  };
+
+  const handleClienteOptionClick = (option) => {
+    setClaveInput(option.clave);
+    setClienteInput(option.nombre);
+    setIsClienteListVisible(false);
+  };
+
+  const handleClaveOptionClick = (option) => {
+    setClienteInput(option.nombre);
+    setClaveInput(option.clave);
+    setIsClaveListVisible(false);
   };
 
   const handleKeyDown = (e) => {
+    const filteredClienteOptions = options.filter(option => option.nombre.toLowerCase().includes(clienteInput.toLowerCase()));
+    const filteredClaveOptions = options.filter(option => option.clave.toLowerCase().includes(claveInput.toLowerCase()));
 
-      const filters = options.filter(option => option.toLowerCase().includes(clienteInput.toLowerCase()));
-      
-      if (isListVisible) {
-        if (e.key === 'ArrowDown' || e.key === "Tab") {
-          setSelectedIndex((prevIndex) => (prevIndex + 1) % filters.length);
-          e.preventDefault();
-        } else if (e.key === 'ArrowUp') {
-          setSelectedIndex((prevIndex) => (prevIndex - 1 + filters.length) % filters.length);
-          e.preventDefault();
-        } else if (e.key === 'Enter' && selectedIndex >= 0) {
-          handleOptionClick(filters[selectedIndex]);
-          e.preventDefault();
-        }
-      }
-
-      if (e.key === 'Enter') {
-        handleSearchClick();
+    if (isClienteListVisible) {
+      if (e.key === 'ArrowDown' || e.key === "Tab") {
+        setSelectedClienteIndex((prevIndex) => (prevIndex + 1) % filteredClienteOptions.length);
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp') {
+        setSelectedClienteIndex((prevIndex) => (prevIndex - 1 + filteredClienteOptions.length) % filteredClienteOptions.length);
+        e.preventDefault();
+      } else if (e.key === 'Enter' && selectedClienteIndex >= 0) {
+        handleClienteOptionClick(filteredClienteOptions[selectedClienteIndex]);
         e.preventDefault();
       }
+    }
 
+    if (isClaveListVisible) {
+      if (e.key === 'ArrowDown' || e.key === "Tab") {
+        setSelectedClaveIndex((prevIndex) => (prevIndex + 1) % filteredClaveOptions.length);
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp') {
+        setSelectedClaveIndex((prevIndex) => (prevIndex - 1 + filteredClaveOptions.length) % filteredClaveOptions.length);
+        e.preventDefault();
+      } else if (e.key === 'Enter' && selectedClaveIndex >= 0) {
+        handleClaveOptionClick(filteredClaveOptions[selectedClaveIndex]);
+        e.preventDefault();
+      }
+    }
+
+    if (e.key === 'Enter') {
+      handleSearchClienteClick();
+      handleSearchClaveClick();
+      e.preventDefault();
+    }
   };
 
   const handleCerrarSesion = () => {
-      setUsuario(null);
-      localStorage.removeItem("existeUsuario");
-      navigate("/login");
-  }
+    setUsuario(null);
+    localStorage.removeItem("existeUsuario");
+    navigate("/login");
+  };
 
   return (
     <>
@@ -123,13 +170,45 @@ export default function Inicio() {
           <h3>Cliente</h3>
           <div className={styles.div_usuario}>
             <p>Usuario: <span>{usuario}</span></p>
-            <p onClick={handleCerrarSesion}><BiLogOut/></p>
+            <p onClick={handleCerrarSesion}><BiLogOut /></p>
           </div>
           <div className={styles.div_form}>
+            {/* Clave  */}
+            <div className={styles.div_cliente}>
+              <label htmlFor="clave">Clave: </label>
+              <input
+                ref={inputRef}
+                type="text"
+                id="clave"
+                value={claveInput}
+                onChange={(e) => setClaveInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                autoComplete="off"
+              />
+              <p className={styles.buscar_cliente} onClick={handleSearchClaveClick}>
+                <IoIosSearch />
+              </p>
+              {isClaveListVisible && claveInput && (
+                <ul className={styles.lista_clientes} ref={claveListRef}>
+                  {options.filter(option =>
+                    option.clave.toLowerCase().includes(claveInput.toLowerCase())
+                  ).map((filteredOption, index) => (
+                    <li
+                      key={filteredOption.id}
+                      onClick={() => handleClaveOptionClick(filteredOption)}
+                      className={selectedClaveIndex === index ? styles.selected : ''}
+                    >
+                      {filteredOption.clave}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {/* Cliente Field */}
             <div className={styles.div_cliente}>
               <label htmlFor="cliente">Cliente: </label>
               <input
-              ref={inputRef}
+                ref={inputRef}
                 type="text"
                 id="cliente"
                 value={clienteInput}
@@ -137,20 +216,20 @@ export default function Inicio() {
                 onKeyDown={handleKeyDown}
                 autoComplete="off"
               />
-              <p className={styles.buscar_cliente} onClick={handleSearchClick}>
+              <p className={styles.buscar_cliente} onClick={handleSearchClienteClick}>
                 <IoIosSearch />
               </p>
-              {isListVisible && clienteInput && (
-                <ul className={styles.lista_clientes} ref={listRef}>
+              {isClienteListVisible && clienteInput && (
+                <ul className={styles.lista_clientes} ref={clienteListRef}>
                   {options.filter(option =>
-                    option.toLowerCase().includes(clienteInput.toLowerCase())
+                    option.nombre.toLowerCase().includes(clienteInput.toLowerCase())
                   ).map((filteredOption, index) => (
                     <li
-                      key={index}
-                      onClick={() => handleOptionClick(filteredOption)}
-                      className={selectedIndex === index ? styles.selected : ''}
+                      key={filteredOption.id}
+                      onClick={() => handleClienteOptionClick(filteredOption)}
+                      className={selectedClienteIndex === index ? styles.selected : ''}
                     >
-                      {filteredOption}
+                      {filteredOption.nombre}
                     </li>
                   ))}
                 </ul>
@@ -162,22 +241,21 @@ export default function Inicio() {
             </div>
             <div className={styles.div_fecha}>
               <label>Fecha:</label>
-              <input value={fechaInput} onChange={()=>{}} type="text" />
+              <input value={fechaInput} onChange={() => {}} type="text" />
             </div>
-            {
-              alerta && (
-                <div className={`${styles.alerta_cliente} ${alerta ? styles.mostrar_alerta : ""}`}>
-                  <p>Debes agregar un cliente valido</p>
-                </div>
-              )
-            }
-            <button  type="submit">Entrar</button>
+            {alerta && (
+              <div className={`${styles.alerta_cliente} ${alerta ? styles.mostrar_alerta : ""}`}>
+                <p>Debes agregar un cliente válido</p>
+              </div>
+            )}
+            <button type="submit">Entrar</button>
           </div>
         </form>
       </div>
     </>
   );
 }
+
 
 
 

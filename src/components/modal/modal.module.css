@@ -54,13 +54,12 @@
 .campos div{
     display: flex;
     align-items: center;
-    justify-content: space-between;
     width: 100%;
     margin: 0 auto;
     max-width: 20rem;
     gap: 1rem;
 }
-.campos div p{
+/*.campos div p{
     font-size: 1.5rem;
     background-color: blue;
     color: white;
@@ -73,6 +72,7 @@
     cursor: pointer;
     font-weight: bold;
 }
+*/
 .campos input, textarea{
     padding: .3rem;
     border-radius: .3rem;
@@ -124,10 +124,18 @@
     display: flex;
     flex-direction: column;
 }
+.div_precio input{
+    height: 3rem;
+    width: 3.5rem;
+}
 .div_cantidad{
     display: flex;
     flex-direction: column;
     position: relative;
+}
+.div_cantidad input{
+    height: 3rem;
+    width: 3.5rem;
 }
 .div_cantidad div{
     display: flex;
@@ -142,3 +150,74 @@
     filter: brightness(.4);
     font-weight: bold;
 }
+.lotes_div {
+    padding: 1rem 0 0 .5rem;
+    display: flex;
+    flex-direction: column; /* Mantiene los lotes en columna */
+    gap: 1rem; /* Espacio entre cada lote */
+}
+
+.lote {
+    border: solid 2px rgb(207, 207, 207);
+    padding: .5rem 1rem;
+    border-radius: .5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%; /* Asegura que cada lote use todo el ancho disponible */
+}
+.lote.selected{
+    border: solid 2px var(--color-principal);
+}
+.lote_row{
+    display: flex;
+    justify-content: space-between; /* Distribuye el espacio entre los elementos */
+    align-items: center; /* Alinea verticalmente los elementos en el centro */
+    width: 100%; /* Asegura que cada lote use todo el ancho disponible */
+}
+.lote_row span{
+    font-weight: bold;
+}
+.lote_input{
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    gap: .5rem;
+}
+.lote_input input{
+    width: 3.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+}
+.disponibles{
+    background-color: none;
+    font-size: .5;
+    text-align: right;
+    display: flex;
+    justify-content: right;
+}
+.disponibles span{
+    font-weight: bold;
+}
+.lote_radio {
+    display: flex;
+    justify-content: start;
+    gap: 0;
+    align-items: center; /* Centra el radio y el texto verticalmente */
+}
+
+.lotes_div input[type="radio"] {
+    width: 20px; /* Ancho del botón de opción */
+    height: 20px; /* Alto del botón de opción */
+    margin: 0;
+}
+
+.lotes_div label {
+    font-size: 1rem;
+    position: relative;
+    cursor: pointer; /* Cambia el cursor al pasar sobre el texto */
+}
+
+
+
+

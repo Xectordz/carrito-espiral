@@ -16,13 +16,13 @@ export default function Grupos() {
 
 
   useEffect(() => {
-    fetch(`${apiURL}/get_grupos_json`)
+    fetch(`${apiURL}/get_catalogos_json/grupos_lineas`)
       .then(res => res.json())
       .then(data => {
         setGrupos(data);
       });
 
-    fetch(`${apiURL}/get_lineas_json`)
+    fetch(`${apiURL}/get_catalogos_json/lineas_articulos`)
       .then(res => res.json())
       .then(data => {
         setLineas(data);
@@ -54,7 +54,10 @@ export default function Grupos() {
     <div className={styles.container}>
       <div className={styles.div_cliente}>
         <p>Cliente: <span>{cliente.cliente}</span></p>
-        <p title='Nuevo cliente' onClick={handleCambiarCliente}><BiLogOut/></p>
+        <div onClick={handleCambiarCliente} className={styles.cambiar_cliente}>
+            {/*<p>Cambiar cliente</p>*/}
+            <p title='Nuevo cliente'><BiLogOut/></p>
+        </div>
       </div>
       <h3 className={styles.titulo_grupos}>Grupos</h3>
       <div className="items_contenedor">

@@ -23,12 +23,6 @@ export default function Carrito() {
 
   const { carrito, setCarrito, cantidadCarrito, cliente } = useCarrito();
 
-  /*funcion que calcula el precio de
-    articulo por su cantidad*/
-    useEffect(() => {
-      const precioConDescuento = precio - (precio * (descuento / 100));
-      setTotal(precioConDescuento * cantidad); // Calcular el total
-  }, [cantidad, precio, descuento]);
 
   const restarCantidad = (id) => {
     const index = carrito.findIndex(item => item.Articulo_id === id);
@@ -83,31 +77,46 @@ export default function Carrito() {
 
   const calcularTotal = () => {
     return carrito.reduce((total, item) => {
-        const descuentoAplicado = item.precioArticulo * (item.descuento / 100);
-        const precioFinal = item.precioArticulo - descuentoAplicado;
-        return total + (precioFinal * item.cantidad);
+      if (item.lotesArticulos.length > 0) {
+        // Si tiene lotes, sumamos los totales de cada lote
+        const totalLotes = item.lotesArticulos.reduce((subtotal, lote) => {
+          // Precio por lote (con descuento)
+          const precioConDescuento = item.precioArticulo - (item.precioArticulo * item.descuento / 100);
+          return subtotal + (precioConDescuento * lote.cantidadLote);
+        }, 0);
+        return total + totalLotes;
+      } else {
+        // Si no tiene lotes, solo usamos la cantidad total del artículo
+        const precioConDescuento = item.precioArticulo - (item.precioArticulo * item.descuento / 100);
+        return total + (precioConDescuento * item.cantidad);
+      }
     }, 0).toFixed(2);
   };
-
   
 
+  console.log(carrito)
+
   const handleComprar = () => {
-    
+      
       const detalles = carrito.map(item => ({
           'articuloId': item.Articulo_id,
           'claveArticulo': item.Clave_articulo,
-          'unidades': item.cantidad,
+          'unidades': item.lotesArticulos.length !== 0 ? item.cantGlobal : item.cantidad,
           'precioUnitario': item.precioArticulo,
           'dscto': item.descuento,
           'total': (item.precioArticulo * item.cantidad) - (item.precioArticulo * item.descuento / 100 * item.cantidad),
           'descripcion': item.Nombre,
           'notas': item.notas,
+          "lotes" : item.lotesArticulos.map(lote=>({
+              "artdiscretoid": lote.artdiscretoid,
+              "cantidad" : lote.cantidadLote,
+          }))
       }));
       const body = {
         'versionEsquema': 'N/D',
         'tipoComando': 'insac.doctos',
         'encabezado': {
-            'clienteId': cliente.cliente,
+            'clienteId': cliente.cliente_id,
             'claveCliente': cliente.clave_cliente,
             'fecha': new Date().toISOString(),
             'observaciones': cliente.obs || '',
@@ -121,7 +130,7 @@ export default function Carrito() {
       console.log(body);
       setCarrito([]);
       localStorage.removeItem("carrito");
-      navigate("/grupos");
+      navigate("/");
   }
   /*
   const handleComprar = () => {
@@ -246,7 +255,7 @@ export default function Carrito() {
     setNota(item.notas);
     setPrecio(item.precioArticulo);
     setDescuento(item.descuento);
-    setCantidad(item.cantidad);
+    setCantidad(item.cantGlobal);
     setEditarArticulo(true);
   };
 
@@ -299,17 +308,42 @@ export default function Carrito() {
                       <img src={img} className={styles.articulo_imagen} alt={item.Nombre}></img>
                     </div>
                     <div className={styles.div_cantidad}>
-                      <p>Cantidad: <span>{item.cantidad}</span></p>
+                      <p>Cant. total: <span>{item.lotesArticulos.length !== 0 ? item.cantGlobal : item.cantidad}</span></p>
+                      <div className={styles.lotes_div}>
+                          { item.lotesArticulos.length !== 0 && (
+                            <p className={styles.cantidad_lotes}>Cant. por lotes: </p>
+                          )}
+                          {
+                            item.lotesArticulos && item.lotesArticulos.map(lote=>(
+                                <p>{lote.nomalmacen}: {lote.cantidadLote}</p>
+                            ))
+                          }
+                      </div>
+                      
+
+                      {/*}
                       <div className={styles.div_agregar}>
                         <p onClick={() => restarCantidad(item.Articulo_id)}>-</p>
                         <p onClick={() => sumarCantidad(item.Articulo_id)}>+</p>
                       </div>
+                      */}
+
+
                     </div>
                     <div className={styles.div_precio}>
                       <p>Precio: ${item.precioArticulo}</p>
-                      <p>Subtotal: ${item.precioArticulo * item.cantidad}</p>
+                      <p>Subtotal: ${item.lotesArticulos.length !== 0 ? item.precioArticulo * item.cantGlobal : item.precioArticulo * item.cantidad}</p>
                       <p>Descuento: {item.descuento}%</p>
-                      <p>Total: ${((item.precioArticulo - (item.precioArticulo * item.descuento / 100)) * item.cantidad).toFixed(2)}</p>
+                      <p>
+                        Total: $
+                        {(
+                          (item.lotesArticulos.length !== 0 ? 
+                            (item.precioArticulo - (item.precioArticulo * item.descuento / 100)) * item.cantGlobal :
+                            (item.precioArticulo - (item.precioArticulo * item.descuento / 100)) * item.cantidad
+                          )
+                        ).toFixed(2)}
+                      </p>
+
                     </div>
                     <div className={styles.div_editar}>
                         <p onClick={() => eliminarArticulo(item.Articulo_id)} className={styles.articulo_eliminar}><FaRegTrashAlt /></p>
@@ -319,6 +353,9 @@ export default function Carrito() {
                   <div className={styles.notas}>
                     <p><span>Notas:</span> {item.notas}</p>
                   </div>
+
+
+                  {/* MODAL EDITAR ARTICULO */}
                   {editarArticulo && articuloEditando === item.Articulo_id && (
                     <>
                     <div className="overlay" />

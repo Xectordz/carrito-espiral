@@ -68,33 +68,3 @@
     filter: brightness(.9);
     border: solid 1px rgb(218, 218, 218);
 }
-.ordenar{
-    cursor: pointer;
-    position: relative;
-    padding: .3rem;
-    border-radius: .3rem;
-}
-.ordenar:hover{
-    background-color: var(--color-gris);
-}
-.ordenar_container{
-    position: absolute;
-    left: 0;
-    top: 100%;
-    width: max-content;
-    transform: translateX(-50%); /* Centra el contenedor */
-    background-color: white;
-    z-index: 10;
-    border: solid 1px rgb(134, 134, 134);
-    border-radius: .3rem;
-    overflow: hidden;
-}
-.ordenar_container p{
-    padding: .5rem;
-    font-size: .9rem;
-    transition: all .3s;
-}
-.ordenar_container p:hover{
-    background-color: var(--color-gris);
-    filter: brightness(.9);
-}

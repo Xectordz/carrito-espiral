@@ -17,7 +17,7 @@ export default function Lineas() {
 
   useEffect(() => {
     setLoading(true); // Comenzar la carga
-    fetch(`${apiURL}/get_lineas_json`)
+    fetch(`${apiURL}/get_catalogos_json/lineas_articulos`)
       .then(res => res.json())
       .then(data => {
         const filteredLineas = data.filter(linea => String(linea.Grupo_Linea_Id) === String(grupoId));

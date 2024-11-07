@@ -26,7 +26,7 @@ export const CarritoProvider = ({ children }) => {
     return storedUsuario ? JSON.parse(storedUsuario) : null;
   });
 
-  const apiURL = "http://192.168.1.104:3000";
+  const apiURL = "http://192.168.1.117:5000";
 
   //
   useEffect(()=> {
@@ -93,7 +93,8 @@ export const CarritoProvider = ({ children }) => {
           )
         : [...prevCarrito, { ...producto, cantidad: 1 }];
   
-      localStorage.setItem('carrito', JSON.stringify(nuevoCarrito)); // Sincronizar con localStorage
+
+      localStorage.setItem('carrito', JSON.stringify(carritoBase64)); // Sincronizar con localStorage
       return nuevoCarrito;
     });
     setAlerta(true);

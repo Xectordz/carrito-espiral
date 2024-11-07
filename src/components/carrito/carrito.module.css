@@ -129,7 +129,18 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: .5rem;
+    gap: 0;
+}
+.cantidad_lotes{
+    font-size: .8rem;
+}
+.lotes_div{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: .7rem;
+    font-weight: normal;
 }
 .div_cantidad span{
     font-weight: bold;

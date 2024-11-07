@@ -30,10 +30,17 @@
     justify-content: center;
     align-items: center;
     font-size: 1.5rem;
-    padding: .5rem;
     transition: all .3s;
 }
-.div_cliente p:last-child:hover{
+.cambiar_cliente{
+    background-color: var(--color-gris);
+    display: flex;
+    align-items: center;
+    padding: .5rem;
+    gap: .3rem;
+}
+.cambiar_cliente:hover{
     background-color: white;
     filter: brightness(.9);
+    cursor: pointer;
 }

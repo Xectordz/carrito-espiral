@@ -99,7 +99,6 @@ export default function Nav({ activeComponent, setActiveComponent }) {
         localStorage.removeItem("existeUsuario");
         localStorage.removeItem("existeCliente");
         localStorage.removeItem("cliente");
-
     }
 
     const handleVenta = () => {
@@ -120,7 +119,7 @@ export default function Nav({ activeComponent, setActiveComponent }) {
                 <div className={styles.div_menu}>
                     {/*boton Menu actualmente inactivo*/}
                     <p onClick={toggleMenu} className={`${styles.menu} ${activeComponent === "menu" && styles.active}`}>
-                        {activeComponent === "menu" ? <IoMdClose /> : <RiMenu2Line />}
+                        <RiMenu2Line />
                     </p>
                     <h2 onClick={handleInicio}>EspiralS</h2>
                 </div>
@@ -155,6 +154,7 @@ export default function Nav({ activeComponent, setActiveComponent }) {
                         <>
                             <div className={styles.overlay}></div>
                             <div className={styles.menu_container} ref={menuRef}>
+                            <p onClick={cerrarMenu} className={styles.close_menu}><IoMdClose/></p>
                                 <div className={styles.div_usuario}>
                                     <p className={styles.usuario}>Usuario: <span>{usuario.split(" ")[0]}</span></p>
                                     <p title='Cerrar sesion' onClick={handleCerrarSesion} className={styles.salir}><BiLogOut/></p>

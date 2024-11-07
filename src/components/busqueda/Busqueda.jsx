@@ -25,6 +25,7 @@ export default function Busqueda() {
     const [alertaModal, setAlertaModal] = useState(false);
     const [ordenarPor, setOrdenarPor] = useState(false);
     const navigate = useNavigate();
+    const [lotesArticulos ,setLotesArticulos] = useState([]);
     
 
     /*fetch de los articulos y se almacenan en 
@@ -33,10 +34,10 @@ export default function Busqueda() {
         setLoading(true);
         const fetchArticulos = async () => {
             try {
-              const res = await fetch(`${apiURL}/get_articulo_json`);
+              const res = await fetch(`${apiURL}/get_catalogos_json/articulos`);
               const data = await res.json();
               setArticulos(data);
-            } catch {
+            } catch(error) {
               console.log("Error al obtener los articulos:", error);
             } finally {
                 setLoading(false);
@@ -94,7 +95,7 @@ export default function Busqueda() {
         }, 2000);
         return;
       }
-      const itemToAdd = ({ ...articuloCarrito, cantidad, notas, precioArticulo, descuento });
+      const itemToAdd = ({ ...articuloCarrito, cantidad, notas, precioArticulo, descuento, lotesArticulos });
       handleAgregar(itemToAdd);
       setModal(false);
       setNotas("");
@@ -105,6 +106,7 @@ export default function Busqueda() {
 
     const closeModal = () => {
       setModal(false);
+      setPrecioArticulo(10);
     };
 
 
@@ -168,19 +170,21 @@ export default function Busqueda() {
                       <MdOutlineViewAgenda/>
                   </div>
               </div>
-                  <div className={styles.ordenar}>
-                    <p onClick={()=>setOrdenarPor(prev=>!prev)}>Ordenar por </p>
+              <div className={styles.ordenar}>
+              <p onClick={()=>setOrdenarPor(prev=>!prev)}>Ordenar por </p>
+                <div className={`ordenar_container ${ordenarPor ? "mostrar_ordenar" : ""}`}>
                     {
                       ordenarPor && (
-                        <div className={styles.ordenar_container}>
-                          <p onClick={()=> handleOrdenar("menor")}>Precio(menor a mayor)</p>
-                          <p onClick={()=> handleOrdenar("mayor")}>Precio(mayor a menor)</p>
-                          <p onClick={()=> handleOrdenar("az")}>Nombre(A a Z)</p>
-                          <p onClick={()=> handleOrdenar("za")}>Nombre(Z a A)</p>
+                        <div>
+                            <p onClick={()=> handleOrdenar("menor")}>Precio(menor a mayor)</p>
+                            <p onClick={()=> handleOrdenar("mayor")}>Precio(mayor a menor)</p>
+                            <p onClick={()=> handleOrdenar("az")}>Nombre(A a Z)</p>
+                            <p onClick={()=> handleOrdenar("za")}>Nombre(Z a A)</p>
                         </div>
                       )
                     }
-                  </div>
+                </div>
+              </div>
               
               </div>
 
@@ -199,10 +203,12 @@ export default function Busqueda() {
                                     <p className={`producto_descuento`}>Descuento: {`${descuento} %`}</p>
                                     <button onClick={(e)=>{
                                         e.stopPropagation();
-                                        handleAgregarArticulos(articulo);
+                                        //handleAgregarArticulos(articulo);
+                                        setModal(true);
                                     }}
                                     >
-                                        Agregar <span><MdAddShoppingCart/></span>
+                                        {/*Agregar <span><MdAddShoppingCart/></span>*/}
+                                      Ver mas
                                     </button>
                                 </div>
                             </div>
@@ -235,18 +241,11 @@ export default function Busqueda() {
       {modal && (
         <Modal
           articuloCarrito={articuloCarrito}
-          cantidad={cantidad}
-          setCantidad={setCantidad}
-          notas={notas}
-          setNotas={setNotas}
-          total={total}
           handleSubmit={handleSubmit}
           closeModal={closeModal}
           alertaModal={alertaModal}
-          precioArticulo={precioArticulo}
-          setPrecioArticulo={setPrecioArticulo}
-          descuento={descuento}
-          setDescuento={setDescuento}
+          lotesArticulos={lotesArticulos}
+          setLotesArticulos={setLotesArticulos}
         />
       )}
 
