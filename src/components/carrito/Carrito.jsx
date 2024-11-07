@@ -19,11 +19,94 @@ export default function Carrito() {
   const [articuloEditando, setArticuloEditando] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [total, setTotal] = useState();
+  const [loteSeleccionado, setLoteSeleccionado] = useState(null);
   const navigate = useNavigate();
+  const [lotes, setLotes] = useState([]);
+  const [cantidadPorLote, setCantidadPorLote] = useState({});  // Estado para la cantidad seleccionada por lote
+  const [lotesArticulosEditados, setLotesArticulosEditados] = useState([]);
+  
 
-  const { carrito, setCarrito, cantidadCarrito, cliente } = useCarrito();
+  // Función que calcula el total con descuento
+  const calcularTotalModal = (precioArticulo, cantidad, descuento) => {
+    if (precioArticulo && cantidad && descuento !== undefined) {
+        const precioConDescuento = precioArticulo - (precioArticulo * (descuento / 100));
+        return precioConDescuento * cantidad;
+    }
+    return 0; // Retorna 0 si los valores no son válidos
+  };
+
+  // Usamos useEffect para recalcular el total cada vez que cambien los valores dentro del modal
+  useEffect(() => {
+    if (editarArticulo && articuloEditando) {
+        // Recalcular el total con los valores actuales del artículo
+        const nuevoTotal = calcularTotalModal(articuloEditando.precioArticulo, articuloEditando.cantGlobal, articuloEditando.descuento);
+        setTotal(nuevoTotal); // Actualizar el estado total con el valor calculado
+      }
+  }, [articuloEditando, editarArticulo]);  // Recalcular cuando articuloEditando o editarArticulo cambien
 
 
+  const { carrito, setCarrito, cantidadCarrito, cliente, apiURL } = useCarrito();
+
+
+  const fetchLotes = async () => {
+    // Asegúrate de que 'articuloEditando' y 'Articulo_id' están definidos
+    if (articuloEditando && articuloEditando.Articulo_id) {
+        
+        try {
+            // Hacemos la petición y esperamos la respuesta
+            const response = await fetch(`${apiURL}/get_lotes_json/${articuloEditando.Articulo_id}`);
+            
+            // Verificamos si la respuesta es válida
+            if (!response.ok) {
+                throw new Error(`Error en la respuesta de la API: ${response.statusText}`);
+            }
+            
+            // Parseamos el cuerpo de la respuesta a JSON
+            const data = await response.json();
+            
+            // Verifica si 'data' es un array antes de continuar
+
+            if (Array.isArray(data)) {
+                // Mapeamos los lotes de la API, agregando el campo 'cantidadLote' de 'articuloEditando.lotesArticulos'
+                const lotesFiltrados = data.map(lote => {
+                    // Busca el lote correspondiente en articuloEditando.lotesArticulos
+                    const loteEdit = articuloEditando.lotesArticulos.find(l => l.artdiscretoid === lote.artdiscretoid);
+                    
+                    
+                    if (loteEdit) {
+                        // Si encontramos el lote correspondiente, le agregamos el campo cantidadLote
+                        return {
+                            ...lote,  // Mantén todas las propiedades del lote
+                            cantidadLote: loteEdit.cantidadLote || 0  // Si no existe, por defecto será 0
+                        };
+                    }
+
+                    // Si no se encuentra el lote en articuloEditando.lotesArticulos, devolvemos el lote original
+                    return lote;
+                });
+
+                // Actualiza el estado con los lotes filtrados y con el campo cantidadLote añadido
+                setLotes(lotesFiltrados);
+            } else {
+                console.error("La respuesta no es un array de lotes");
+            }
+        } catch (error) {
+            console.error('Error al obtener los lotes:', error);
+        }
+    } else {
+        console.error('No se ha definido articuloEditando o Articulo_id');
+    }
+};
+
+
+useEffect(() => {
+  // Verifica que articuloEditando y Articulo_id están definidos
+  if (articuloEditando && articuloEditando.Articulo_id) {
+      fetchLotes();
+  }
+}, [articuloEditando]);
+
+ 
   const restarCantidad = (id) => {
     const index = carrito.findIndex(item => item.Articulo_id === id);
     if (index !== -1) {
@@ -75,33 +158,35 @@ export default function Carrito() {
     document.body.style.overflow = "hidden";
   };
 
-  const calcularTotal = () => {
-    return carrito.reduce((total, item) => {
-      if (item.lotesArticulos.length > 0) {
-        // Si tiene lotes, sumamos los totales de cada lote
-        const totalLotes = item.lotesArticulos.reduce((subtotal, lote) => {
-          // Precio por lote (con descuento)
-          const precioConDescuento = item.precioArticulo - (item.precioArticulo * item.descuento / 100);
-          return subtotal + (precioConDescuento * lote.cantidadLote);
-        }, 0);
-        return total + totalLotes;
-      } else {
-        // Si no tiene lotes, solo usamos la cantidad total del artículo
-        const precioConDescuento = item.precioArticulo - (item.precioArticulo * item.descuento / 100);
-        return total + (precioConDescuento * item.cantidad);
-      }
-    }, 0).toFixed(2);
-  };
+ // Definir la función calcularTotal que actualiza el estado total
+const calcularTotal = () => {
+  let total = 0;
+
+  carrito.forEach(item => {
+    const cantidadArticulo = item.cantGlobal;
+    const precioConDescuento = item.precioArticulo - (item.precioArticulo * item.descuento / 100);
+    const totalArticulo = precioConDescuento * cantidadArticulo;
+    total += totalArticulo;
+  });
+
+  return total.toFixed(2);  // Devolver el total calculado con dos decimales
+};
+
+
+// Usar useEffect para ejecutar el cálculo solo cuando el carrito cambia
+useEffect(() => {
+  calcularTotal(); // Calcular el total solo cuando el carrito cambie
+}, [carrito]);  // Dependencia de carrito, así que solo se recalcula cuando el carrito cambia
+
   
 
-  console.log(carrito)
 
   const handleComprar = () => {
       
       const detalles = carrito.map(item => ({
           'articuloId': item.Articulo_id,
           'claveArticulo': item.Clave_articulo,
-          'unidades': item.lotesArticulos.length !== 0 ? item.cantGlobal : item.cantidad,
+          'unidades': item.cantGlobal,
           'precioUnitario': item.precioArticulo,
           'dscto': item.descuento,
           'total': (item.precioArticulo * item.cantidad) - (item.precioArticulo * item.descuento / 100 * item.cantidad),
@@ -250,14 +335,16 @@ export default function Carrito() {
 };
 
 
-  const handleEditarArticulo = (item) => {
-    setArticuloEditando(item.Articulo_id);
-    setNota(item.notas);
-    setPrecio(item.precioArticulo);
-    setDescuento(item.descuento);
-    setCantidad(item.cantGlobal);
-    setEditarArticulo(true);
-  };
+const handleEditarArticulo = (item) => {
+  // Establecer el estado con los valores del artículo
+  setArticuloEditando(item);
+  setNota(item.notas);
+  setPrecio(item.precioArticulo);
+  setDescuento(item.descuento);
+  setCantidad(item.cantGlobal);
+  setEditarArticulo(true);
+};
+console.log(carrito)
 
   useEffect(() => {
     document.body.style.overflow = editarArticulo ? 'hidden' : 'unset';
@@ -266,7 +353,7 @@ export default function Carrito() {
   const handleGuardarArticulo = (item) => {
     const editado = carrito.map(articulo =>
       articulo.Articulo_id === item.Articulo_id
-        ? { ...articulo, notas: nota.trim(), precioArticulo: precio, descuento: descuento, cantidad: cantidad }
+        ? { ...articulo, notas: nota.trim(), precioArticulo: precio, descuento: descuento, cantGlobal: cantidad }
         : articulo
     );
     setCarrito(editado);
@@ -274,7 +361,47 @@ export default function Carrito() {
     setNota("");
     setEditarArticulo(false);
     setArticuloEditando(null);
+    setLotes([]);
+    setCantidadPorLote([]);
   };
+
+  
+
+  // Manejador para cambiar la cantidad en un lote específico
+  const handleCantidadLoteChange = (nomalmacen, artdiscretoid, loteClave, value) => {
+    // Asegurarse de que no se sobrepase la disponibilidad
+    const lote = lotes.find(l => l.clave === loteClave);
+  
+    if (lote && value <= lote.existencia) {
+      // Actualiza cantidadPorLote
+      setCantidadPorLote(prev => ({
+        ...prev,
+        [loteClave]: value
+      }));
+      console.log(cantidadPorLote)
+      // Actualiza lotesArticulos solo si el artículo no existe en el array
+      setLotesArticulosEditados(prev => {
+        const index = prev.findIndex(item => item.artdiscretoid === artdiscretoid);
+  
+        if (index === -1) {
+          // Si no existe, agregar nuevo artículo
+          return [
+            ...prev,
+            { nomalmacen, artdiscretoid, cantidadLote: value }
+          ];
+        } else {
+          // Si ya existe, actualizar la cantidad
+          const newLotesArticulos = [...prev];
+          newLotesArticulos[index] = { ...newLotesArticulos[index], cantidadLote: value };
+          return newLotesArticulos;
+        }
+      });
+    }
+  };
+
+
+  
+  
 
   return (
     <>
@@ -308,7 +435,7 @@ export default function Carrito() {
                       <img src={img} className={styles.articulo_imagen} alt={item.Nombre}></img>
                     </div>
                     <div className={styles.div_cantidad}>
-                      <p>Cant. total: <span>{item.lotesArticulos.length !== 0 ? item.cantGlobal : item.cantidad}</span></p>
+                      <p>Cant. total: <span>{item.cantGlobal}</span></p>
                       <div className={styles.lotes_div}>
                           { item.lotesArticulos.length !== 0 && (
                             <p className={styles.cantidad_lotes}>Cant. por lotes: </p>
@@ -332,17 +459,13 @@ export default function Carrito() {
                     </div>
                     <div className={styles.div_precio}>
                       <p>Precio: ${item.precioArticulo}</p>
-                      <p>Subtotal: ${item.lotesArticulos.length !== 0 ? item.precioArticulo * item.cantGlobal : item.precioArticulo * item.cantidad}</p>
+                      <p>Subtotal: ${item.precioArticulo * item.cantGlobal}</p>
                       <p>Descuento: {item.descuento}%</p>
                       <p>
-                        Total: $
-                        {(
-                          (item.lotesArticulos.length !== 0 ? 
-                            (item.precioArticulo - (item.precioArticulo * item.descuento / 100)) * item.cantGlobal :
-                            (item.precioArticulo - (item.precioArticulo * item.descuento / 100)) * item.cantidad
-                          )
-                        ).toFixed(2)}
+                          Total: $
+                          {((item.precioArticulo - (item.precioArticulo * item.descuento / 100)) * item.cantGlobal).toFixed(2)}
                       </p>
+
 
                     </div>
                     <div className={styles.div_editar}>
@@ -356,7 +479,7 @@ export default function Carrito() {
 
 
                   {/* MODAL EDITAR ARTICULO */}
-                  {editarArticulo && articuloEditando === item.Articulo_id && (
+                  {editarArticulo && articuloEditando.Articulo_id === item.Articulo_id && (
                     <>
                     <div className="overlay" />
                     <form className={styles.modal} onSubmit={()=>handleGuardarArticulo(item)}>
@@ -398,6 +521,41 @@ export default function Carrito() {
                                     <input onChange={(e)=>setDescuento(e.target.value)} value={descuento} type="number" />
                                 </div>
                             </div>
+                          </div>
+                          <div>
+                            {
+                              lotes.length !== 0 && (
+                                  lotes.map((lote, index)=>(
+                                    <div 
+                                      key={index} 
+                                      className={`${styles.lote} ${loteSeleccionado?.clave === lote.clave ? styles.selected : ''}`} // Aplica clase 'selected' si el lote es el seleccionado
+                                    >
+                                      <div className={styles.lote_row}>
+                                        <div className={styles.lote_radio}>
+                                          <label htmlFor={lote.nombre}>{lote.nomalmacen}</label>
+                                        </div>
+                                        <div className={styles.disponibles}>
+                                          <p>Disponibles: <span>{lote.existencia}</span></p>
+                                        </div>
+                                      </div>
+
+                                      <div className={styles.lote_row}>
+                                        <p>Fecha: <span>{lote.fecha}</span></p>
+                                      </div>
+                                      <div className={styles.lote_input}>
+                                          <label>Cantidad de este lote:</label>
+                                          <input 
+                                            type="number"
+                                            max={articuloEditando.cantGlobal} 
+                                            min={0}
+                                            value={cantidadPorLote[lote.clave] || 0}
+                                            onChange={(e) => handleCantidadLoteChange(lote.nomalmacen, lote.artdiscretoid, lote.clave, Math.min(e.target.value, lote.existencia))}
+                                          />
+                                        </div>
+                                    </div>
+                                  ))
+                              )
+                            }
                           </div>
                           <div className={styles.campos}>
                             <label htmlFor="notas">Notas:</label>

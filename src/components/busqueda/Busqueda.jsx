@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 export default function Busqueda() {
-    const { alerta, handleAgregar, view, setView, cantidad, setCantidad, precioArticulo, setPrecioArticulo, notas, setNotas, descuento, setDescuento, total, setTotal, apiURL } = useCarrito();
+    const { alerta, handleAgregar, view, setView, apiURL } = useCarrito();
     const [articulos, setArticulos] = useState([]);
     const [filtrados, setFiltrados] = useState([]);
     const { searchTerm } = useParams();
@@ -27,6 +27,18 @@ export default function Busqueda() {
     const navigate = useNavigate();
     const [lotesArticulos ,setLotesArticulos] = useState([]);
     
+    const [cantidad, setCantidad] = useState(1);
+    const [notas, setNotas] = useState("");
+    const [precioArticulo, setPrecioArticulo] = useState(10);
+    const [descuento, setDescuento] = useState(0);
+    const [total, setTotal] = useState(0);
+
+    /*funcion que calcula el precio de
+    articulo por su cantidad*/
+    useEffect(() => {
+      const precioConDescuento = precioArticulo - (precioArticulo * (descuento / 100));
+      setTotal(precioConDescuento * cantidad); // Calcular el total
+  }, [cantidad, precioArticulo, descuento]);
 
     /*fetch de los articulos y se almacenan en 
       la variable de estado articulos*/
@@ -95,13 +107,23 @@ export default function Busqueda() {
         }, 2000);
         return;
       }
-      const itemToAdd = ({ ...articuloCarrito, cantidad, notas, precioArticulo, descuento, lotesArticulos });
+      const itemToAdd = { 
+        ...articuloCarrito, 
+        cantidad, 
+        "cantGlobal": cantidad,
+        notas,
+        precioArticulo,
+        descuento, 
+        lotesArticulos
+      };
+      setLotesArticulos([]);
       handleAgregar(itemToAdd);
       setModal(false);
       setNotas("");
       setCantidad(1);
       setDescuento(0);
       setPrecioArticulo(10);
+      console.log(itemToAdd);
     };
 
     const closeModal = () => {
@@ -246,6 +268,15 @@ export default function Busqueda() {
           alertaModal={alertaModal}
           lotesArticulos={lotesArticulos}
           setLotesArticulos={setLotesArticulos}
+          setCantidad={setCantidad}
+          cantidad={cantidad}
+          setNotas={setNotas}
+          notas={notas}
+          precioArticulo={precioArticulo}
+          setPrecioArticulo={setPrecioArticulo}
+          descuento={descuento}
+          setDescuento={setDescuento}
+          total={total}
         />
       )}
 

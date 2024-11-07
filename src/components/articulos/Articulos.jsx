@@ -22,7 +22,7 @@ import useGrupoLinea from "../../customHook/useGrupoLinea"
 /*Componente Articulos*/
 export default function Articulos() {
   const { lineaId } = useGrupoLinea();
-  const { alerta, cantidad, setCantidad, handleAgregar, view, setView, precioArticulo, setPrecioArticulo, notas, setNotas, descuento, setDescuento, total, setTotal, apiURL } = useCarrito(); // extraccion de variables o funciones reciclables del contecto carrito
+  const { alerta, handleAgregar, view, setView, apiURL } = useCarrito(); // extraccion de variables o funciones reciclables del contecto carrito
   //const { lineaId } = useParams(); // extraccion del parametro pasado de la ruta anterior que contiene el id de la linea
   const [loading, setLoading] = useState(true); // variable local de loading
   const [articulos, setArticulos] = useState([]); // variable donde se almacenaran los articulos ya filtrados que coinciden con el id de lineas
@@ -33,7 +33,18 @@ export default function Articulos() {
   const navigate = useNavigate();
   const [lotesArticulos ,setLotesArticulos] = useState([]);
 
-  
+  const [cantidad, setCantidad] = useState(1);
+  const [notas, setNotas] = useState("");
+  const [precioArticulo, setPrecioArticulo] = useState(10);
+  const [descuento, setDescuento] = useState(0);
+  const [total, setTotal] = useState(0);
+
+  /*funcion que calcula el precio de
+    articulo por su cantidad*/
+    useEffect(() => {
+      const precioConDescuento = precioArticulo - (precioArticulo * (descuento / 100));
+      setTotal(precioConDescuento * cantidad); // Calcular el total
+  }, [cantidad, precioArticulo, descuento]);
   
   /*funcion que realiza el fetch de los articulos
     y filtra solo los que coinciden a la linea
@@ -78,16 +89,18 @@ export default function Articulos() {
       cantidad, 
       "cantGlobal": cantidad,
       notas,
-      precioArticulo, 
+      precioArticulo,
       descuento, 
-      lotesArticulos 
+      lotesArticulos
     };
+    setLotesArticulos([]);
     handleAgregar(itemToAdd);
     setModal(false);
     setNotas("");
     setCantidad(1);
     setDescuento(0);
     setPrecioArticulo(10);
+    console.log(lotesArticulos);
   };
   
 
@@ -244,7 +257,15 @@ export default function Articulos() {
           alertaModal={alertaModal}
           lotesArticulos={lotesArticulos}
           setLotesArticulos={setLotesArticulos}
-
+          setCantidad={setCantidad}
+          cantidad={cantidad}
+          setNotas={setNotas}
+          notas={notas}
+          precioArticulo={precioArticulo}
+          setPrecioArticulo={setPrecioArticulo}
+          descuento={descuento}
+          setDescuento={setDescuento}
+          total={total}
         />
         </>
       )}

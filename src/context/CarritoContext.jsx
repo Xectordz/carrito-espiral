@@ -12,11 +12,7 @@ export const CarritoProvider = ({ children }) => {
       const viewStorage = localStorage.getItem("view");
       return viewStorage ? JSON.parse(viewStorage) : { grid: true, row: false };
   });
-  const [cantidad, setCantidad] = useState(1);
-  const [notas, setNotas] = useState("");
-  const [precioArticulo, setPrecioArticulo] = useState(10);
-  const [descuento, setDescuento] = useState(0);
-  const [total, setTotal] = useState(0);
+  
   const [cliente, setCliente] = useState(() => {
     const storedCliente = localStorage.getItem('cliente');
     return storedCliente ? JSON.parse(storedCliente) : { cliente: "Generico", fecha: "", obs: "", clave_cliente: "", cliente_id: "" };
@@ -65,43 +61,106 @@ export const CarritoProvider = ({ children }) => {
   }, []);
   
 
-   /*funcion que calcula el precio de
-    articulo por su cantidad*/
-    useEffect(() => {
-      const precioConDescuento = precioArticulo - (precioArticulo * (descuento / 100));
-      setTotal(precioConDescuento * cantidad); // Calcular el total
-  }, [cantidad, precioArticulo, descuento]);
+   
 
   
   // Cuenta todos los artículos del carrito
   useEffect(() => {
     const actualizarCant = () => {
-      const cantidad = carrito.reduce((total, item) => total + item.cantidad, 0);
+      const cantidad = carrito.reduce((total, item) => total + item.cantGlobal, 0);
       setCantidadCarrito(cantidad);
     };
     actualizarCant();
   }, [carrito, setCantidadCarrito]);
 
 
-  // Función para agregar un artículo al carrito
   const handleAgregar = (producto) => {
     setCarrito(prevCarrito => {
+      // Verificamos si el artículo ya existe en el carrito
       const existe = prevCarrito.find(item => item.Articulo_id === producto.Articulo_id);
-      const nuevoCarrito = existe 
-        ? prevCarrito.map(item =>
-            item.Articulo_id === producto.Articulo_id ? { ...item, cantidad: item.cantidad + 1 } : item
-          )
-        : [...prevCarrito, { ...producto, cantidad: 1 }];
   
-
-      localStorage.setItem('carrito', JSON.stringify(nuevoCarrito)); // Sincronizar con localStorage
+      const nuevoCarrito = existe
+        ? prevCarrito.map(item => {
+            if (item.Articulo_id === producto.Articulo_id) {
+              // Si el artículo ya existe, actualizamos sus lotes
+              const nuevosLotes = producto.lotesArticulos.reduce((acumulador, loteProducto) => {
+                // Buscar si el lote ya existe en el carrito
+                const loteExistente = item.lotesArticulos.find(lote => lote.artdiscretoid === loteProducto.artdiscretoid);
+  
+                if (loteExistente) {
+                  // Si el lote ya existe, sumamos las cantidades
+                  acumulador.push({
+                    ...loteExistente,
+                    cantidadLote: loteExistente.cantidadLote + loteProducto.cantidadLote
+                  });
+                } else {
+                  // Si el lote no existe, lo agregamos con su cantidadLote original
+                  acumulador.push({
+                    ...loteProducto,
+                  });
+                }
+  
+                return acumulador;
+              }, []); // Usamos reduce para acumular los lotes actualizados
+  
+              // Fusionamos los lotes existentes con los nuevos lotes
+              const lotesActualizados = [
+                ...item.lotesArticulos,  // Lotes previos
+                ...nuevosLotes            // Nuevos lotes procesados
+              ];
+  
+              // Eliminar duplicados, en caso de que algún lote ya haya sido sumado
+              const lotesFinales = lotesActualizados.reduce((acc, lote) => {
+                const exists = acc.find(l => l.artdiscretoid === lote.artdiscretoid);
+                if (!exists) {
+                  acc.push(lote); // Solo agregamos el lote si no está ya en el acumulador
+                } else {
+                  // Si el lote existe, sumamos la cantidadLote
+                  acc = acc.map(l => 
+                    l.artdiscretoid === lote.artdiscretoid ? { ...l, cantidadLote: l.cantidadLote + lote.cantidadLote } : l
+                  );
+                }
+                return acc;
+              }, []);
+  
+              return {
+                ...item,
+                cantGlobal: item.cantGlobal + producto.cantGlobal, // Sumamos la cantidad global
+                lotesArticulos: lotesFinales // Actualizamos los lotes
+              };
+            }
+            return item;
+          })
+        : [
+            ...prevCarrito,
+            { 
+              ...producto, // Inicializamos el artículo con su cantidad y lotes
+              lotesArticulos: producto.lotesArticulos.map(lote => ({
+                ...lote, // Mantenemos los lotes con su cantidadLote original
+              }))
+            }
+          ];
+  
+      // Sincronizamos el carrito con localStorage
+      localStorage.setItem('carrito', JSON.stringify(nuevoCarrito));
+  
       return nuevoCarrito;
     });
+  
+    // Activar alerta de agregado al carrito
     setAlerta(true);
     setTimeout(() => {
       setAlerta(false);
     }, 2000);
   };
+  
+  
+  
+  
+  
+
+
+
   
 
   return (
@@ -115,16 +174,6 @@ export const CarritoProvider = ({ children }) => {
         handleAgregar,
         view,
         setView, 
-        cantidad,
-        setCantidad,
-        notas,
-        setNotas,
-        precioArticulo,
-        setPrecioArticulo,
-        descuento,
-        setDescuento,
-        total,
-        setTotal,
         cliente,
         setCliente,
         apiURL,

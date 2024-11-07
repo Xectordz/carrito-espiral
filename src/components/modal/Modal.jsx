@@ -13,8 +13,9 @@ export default function Modal({
   alertaModal,
   lotesArticulos,
   setLotesArticulos,
+  cantidad, setCantidad, notas, setNotas, total, descuento, setDescuento, precioArticulo, setPrecioArticulo
 }) {
-  const { apiURL, cantidad, setCantidad, notas, setNotas, total, descuento, setDescuento, precioArticulo, setPrecioArticulo } = useCarrito();
+  const { apiURL,  } = useCarrito();
   const [loteSeleccionado, setLoteSeleccionado] = useState(null); // Estado para manejar el lote seleccionado
   const [lote, setLote] = useState("");
   const [lotes, setLotes] = useState([]);
@@ -33,7 +34,6 @@ export default function Modal({
   const changeLote = (lote) => {
     setLoteSeleccionado(lote);  // Cambia el lote seleccionado
     setLote(lote);              // Cambia el lote activo
-    
   };
 
   // Manejador para cambiar la cantidad en un lote específico
@@ -68,7 +68,7 @@ export default function Modal({
     }
   };
   
-  console.log(lotesArticulos)
+  
 
   // Calcular el total seleccionado en base a las cantidades por lote
   const calcularTotalCantidadSeleccionada = () => {
