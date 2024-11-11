@@ -5,6 +5,8 @@ import img from "../../../public/deportes.jpg"
 import { BiLogOut } from "react-icons/bi";
 import { useCarrito } from "../../context/CarritoContext"
 import  useGrupoLinea  from "../../customHook/useGrupoLinea"
+import SHA256 from "crypto-js/sha256";
+
 
 
 export default function Grupos() {
@@ -31,9 +33,17 @@ export default function Grupos() {
 
   const handleGroupClick = (grupoId) => {
     setGrupoId(grupoId);
-    localStorage.setItem("grupoId", JSON.stringify(grupoId));
-    navigate(`/lineas`); 
+
+    // Codificar grupoId a Base64 antes de almacenarlo
+    const encodedGrupoId = btoa(JSON.stringify(grupoId));
+
+    // Almacenar el grupoId codificado en localStorage
+    localStorage.setItem("grupoId", encodedGrupoId);
+
+    // Navegar a la ruta /lineas
+    navigate(`/lineas`);
   };
+
 
 
   const handleCambiarCliente = () => {

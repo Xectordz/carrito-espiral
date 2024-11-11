@@ -24,6 +24,9 @@ export default function Carrito() {
   const [lotes, setLotes] = useState([]);
   const [cantidadPorLote, setCantidadPorLote] = useState({});  // Estado para la cantidad seleccionada por lote
   const [lotesArticulosEditados, setLotesArticulosEditados] = useState([]);
+  const [lotesDisp, setLotesDisp] = useState([]);
+  const [indexEditado, setIndexEditado] = useState("");
+  const [mensaje, setMensaje] = useState(false);
   
 
   // Función que calcula el total con descuento
@@ -39,10 +42,10 @@ export default function Carrito() {
   useEffect(() => {
     if (editarArticulo && articuloEditando) {
         // Recalcular el total con los valores actuales del artículo
-        const nuevoTotal = calcularTotalModal(articuloEditando.precioArticulo, articuloEditando.cantGlobal, articuloEditando.descuento);
+        const nuevoTotal = calcularTotalModal(articuloEditando.precioArticulo, cantidad, articuloEditando.descuento);
         setTotal(nuevoTotal); // Actualizar el estado total con el valor calculado
       }
-  }, [articuloEditando, editarArticulo]);  // Recalcular cuando articuloEditando o editarArticulo cambien
+  }, [articuloEditando, editarArticulo, cantidad]);  // Recalcular cuando articuloEditando o editarArticulo cambien
 
 
   const { carrito, setCarrito, cantidadCarrito, cliente, apiURL } = useCarrito();
@@ -77,7 +80,7 @@ export default function Carrito() {
                         // Si encontramos el lote correspondiente, le agregamos el campo cantidadLote
                         return {
                             ...lote,  // Mantén todas las propiedades del lote
-                            cantidadLote: loteEdit.cantidadLote || 0  // Si no existe, por defecto será 0
+                            cantidadLote: loteEdit.cantidadLote  // Si no existe, por defecto será 0
                         };
                     }
 
@@ -97,7 +100,6 @@ export default function Carrito() {
         console.error('No se ha definido articuloEditando o Articulo_id');
     }
 };
-
 
 useEffect(() => {
   // Verifica que articuloEditando y Articulo_id están definidos
@@ -134,12 +136,20 @@ useEffect(() => {
     }
   };
 
-  const eliminarArticulo = (id) => {
-    const nuevoCarrito = carrito.filter(item => item.Articulo_id !== id);
+  const eliminarArticulo = (index) => {
+    // Filtra los artículos que no coincidan con el id que deseas eliminar
+    const nuevoCarrito = carrito.filter((item, idx) => idx !== index);
+    
+    // Actualiza el estado del carrito
     setCarrito(nuevoCarrito);
-
-    localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
+  
+    // Codifica el carrito en base64 antes de almacenarlo
+    const carritoBase64 = btoa(JSON.stringify(nuevoCarrito));
+    
+    // Almacena el carrito codificado en base64 en localStorage
+    localStorage.setItem("carrito", carritoBase64);
   };
+  
 
   const confirmarEliminar = () => {
     localStorage.removeItem("carrito");
@@ -335,35 +345,79 @@ useEffect(() => {
 };
 
 
+const recuperarCarrito = () => {
+  const carritoBase64 = localStorage.getItem('carrito');
+  
+  if (carritoBase64) {
+    try {
+      // Decodificamos el carrito de Base64 a JSON
+      const carritoDecoded = JSON.parse(atob(carritoBase64));
+      setCarrito(carritoDecoded);
+    } catch (error) {
+      console.error("Error al decodificar carrito desde Base64", error);
+    }
+  }
+};
+
+// Recuperar el carrito al montar el componente
+useEffect(() => {
+  recuperarCarrito();
+}, []);
+
 const handleEditarArticulo = (item) => {
-  // Establecer el estado con los valores del artículo
   setArticuloEditando(item);
   setNota(item.notas);
   setPrecio(item.precioArticulo);
   setDescuento(item.descuento);
   setCantidad(item.cantGlobal);
   setEditarArticulo(true);
+  setLotesDisp(item.lotesArticulos);
+  
 };
-console.log(carrito)
 
-  useEffect(() => {
-    document.body.style.overflow = editarArticulo ? 'hidden' : 'unset';
-  }, [editarArticulo]);
 
-  const handleGuardarArticulo = (item) => {
-    const editado = carrito.map(articulo =>
-      articulo.Articulo_id === item.Articulo_id
-        ? { ...articulo, notas: nota.trim(), precioArticulo: precio, descuento: descuento, cantGlobal: cantidad }
-        : articulo
-    );
-    setCarrito(editado);
-    localStorage.setItem("carrito", JSON.stringify(editado));
-    setNota("");
-    setEditarArticulo(false);
-    setArticuloEditando(null);
-    setLotes([]);
-    setCantidadPorLote([]);
-  };
+
+const handleGuardarArticulo = (item) => {
+  // Calcular la suma de las cantidades de los lotes editados
+  const sumaLotes = lotesArticulosEditados.reduce((total, lote) => total + lote.cantidadLote, 0);
+
+  // Verificar si la suma de las cantidades de los lotes no sobrepasa la cantidad total
+  if ( articuloEditando.lotesArticulos.length !== 0 && sumaLotes !== cantidad) {
+    // Si la suma es mayor a la cantidad total, mostrar un mensaje de error
+    alert('La suma de las cantidades de los lotes no puede ser diferente a la cantidad total del artículo.');
+    setLotesArticulosEditados([]);
+    return;
+  }
+
+  // Si la validación pasa, procedemos a editar el artículo en el carrito
+  const editado = carrito.map((articulo, index) =>
+    index === indexEditado
+      ? {
+          ...articulo,
+          notas: nota.trim(),
+          precioArticulo: precio,
+          descuento: descuento,
+          cantGlobal: cantidad,
+          lotesArticulos: lotesArticulosEditados,
+        }
+      : articulo
+  );
+
+  // Codificamos el carrito a Base64 antes de almacenarlo
+  const carritoBase64 = btoa(JSON.stringify(editado));
+
+  // Guardamos el carrito codificado en Base64 en localStorage
+  localStorage.setItem("carrito", carritoBase64);
+
+  // Establecer el carrito actualizado en el estado
+  setCarrito(editado);
+
+  // Limpiar los campos y cerrar la ventana de edición
+  setNota("");
+  setEditarArticulo(false);
+  setArticuloEditando(null); 
+  setLotesArticulosEditados([]);
+};
 
   
 
@@ -381,6 +435,7 @@ console.log(carrito)
       console.log(cantidadPorLote)
       // Actualiza lotesArticulos solo si el artículo no existe en el array
       setLotesArticulosEditados(prev => {
+        
         const index = prev.findIndex(item => item.artdiscretoid === artdiscretoid);
   
         if (index === -1) {
@@ -399,7 +454,11 @@ console.log(carrito)
     }
   };
 
-
+  // formatear la fecha que trae el lote
+  const formatearFecha = (fecha) => {
+    const fechaObj = new Date(fecha); // Convierte la fecha a un objeto Date
+    return fechaObj.toLocaleDateString('es-ES'); // Devuelve la fecha en formato 'dd/mm/yyyy'
+  };
   
   
 
@@ -436,7 +495,7 @@ console.log(carrito)
                     </div>
                     <div className={styles.div_cantidad}>
                       <p>Cant. total: <span>{item.cantGlobal}</span></p>
-                      <div className={styles.lotes_div}>
+                      <div className={styles.lotes_div_carrito}>
                           { item.lotesArticulos.length !== 0 && (
                             <p className={styles.cantidad_lotes}>Cant. por lotes: </p>
                           )}
@@ -469,8 +528,12 @@ console.log(carrito)
 
                     </div>
                     <div className={styles.div_editar}>
-                        <p onClick={() => eliminarArticulo(item.Articulo_id)} className={styles.articulo_eliminar}><FaRegTrashAlt /></p>
-                        <p className={styles.editar} onClick={() => handleEditarArticulo(item)}><FaEdit /></p>
+                        <p onClick={() => eliminarArticulo(index)} className={styles.articulo_eliminar}><FaRegTrashAlt /></p>
+                        <p className={styles.editar} 
+                        onClick={() => {
+                            handleEditarArticulo(item);
+                            setIndexEditado(index);
+                        }}><FaEdit /></p>
                     </div>
                   </div>
                   <div className={styles.notas}>
@@ -522,7 +585,7 @@ console.log(carrito)
                                 </div>
                             </div>
                           </div>
-                          <div>
+                          <div className={styles.lotes_div}>
                             {
                               lotes.length !== 0 && (
                                   lotes.map((lote, index)=>(
@@ -540,13 +603,13 @@ console.log(carrito)
                                       </div>
 
                                       <div className={styles.lote_row}>
-                                        <p>Fecha: <span>{lote.fecha}</span></p>
+                                        <p>Fecha: <span>{formatearFecha(lote.fecha)}</span></p>
                                       </div>
                                       <div className={styles.lote_input}>
                                           <label>Cantidad de este lote:</label>
                                           <input 
                                             type="number"
-                                            max={articuloEditando.cantGlobal} 
+                                            max={cantidad} 
                                             min={0}
                                             value={cantidadPorLote[lote.clave] || 0}
                                             onChange={(e) => handleCantidadLoteChange(lote.nomalmacen, lote.artdiscretoid, lote.clave, Math.min(e.target.value, lote.existencia))}

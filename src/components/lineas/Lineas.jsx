@@ -32,9 +32,17 @@ export default function Lineas() {
 
   const handleLinea = (lineaId) => {
     setLineaId(lineaId);
-    localStorage.setItem("lineaId", JSON.stringify(lineaId));
+
+    // Codificar el lineaId a Base64 antes de almacenarlo
+    const encodedLineaId = btoa(JSON.stringify(lineaId));
+    
+    // Almacenar en localStorage con el valor codificado
+    localStorage.setItem("lineaId", encodedLineaId);
+
+    // Navegar a la ruta deseada
     navigate(`/articulos`);
-  }
+  };
+
 
 
   return (

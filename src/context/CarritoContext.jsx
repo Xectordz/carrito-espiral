@@ -14,8 +14,8 @@ export const CarritoProvider = ({ children }) => {
   });
   
   const [cliente, setCliente] = useState(() => {
-    const storedCliente = localStorage.getItem('cliente');
-    return storedCliente ? JSON.parse(storedCliente) : { cliente: "Generico", fecha: "", obs: "", clave_cliente: "", cliente_id: "" };
+    const clienteBase64 = localStorage.getItem('cliente');
+    return clienteBase64 ? JSON.parse(atob(clienteBase64)) : null;
   });
   const [usuario, setUsuario] = useState(() => {
     const storedUsuario = localStorage.getItem('usuario');
@@ -26,8 +26,10 @@ export const CarritoProvider = ({ children }) => {
 
   //
   useEffect(()=> {
+    const viewBase64 = btoa(JSON.stringify(view));
     localStorage.setItem("view", JSON.stringify(view));
-  }, [view])
+  }, [view]);
+  
 
   //almacenar usuario
   useEffect(() => {
@@ -38,42 +40,91 @@ export const CarritoProvider = ({ children }) => {
     }
   }, [usuario]);
 
-  // Efecto para almacenar el cliente en localStorage
+  // Almacenar el cliente en localStorage como Base64
   useEffect(() => {
-    localStorage.setItem('cliente', JSON.stringify(cliente));
+    if (cliente) {
+      const clienteBase64 = btoa(JSON.stringify(cliente)); // Codificamos a Base64
+      localStorage.setItem('cliente', clienteBase64);
+    } else {
+      localStorage.removeItem('cliente');
+    }
   }, [cliente]);
+  
+  const isBase64 = (str) => {
+    try {
+      // Expresión regular para validar Base64
+      return btoa(atob(str)) === str;
+    } catch (e) {
+      return false;
+    }
+  };
+  
 
   useEffect(() => {
     try {
-      const clienteGuardado = JSON.parse(localStorage.getItem('cliente'));
-      const carritoGuardado = JSON.parse(localStorage.getItem('carrito'));
+      // Recuperar los datos de localStorage
+      const clienteGuardado = localStorage.getItem('cliente');
+      const carritoGuardado = localStorage.getItem('carrito');
   
+      // Verificar si los datos están codificados en Base64 y decodificarlos
       if (clienteGuardado) {
-        setCliente(clienteGuardado);
-      } 
+        const clienteDecoded = isBase64(clienteGuardado) ? JSON.parse(atob(clienteGuardado)) : JSON.parse(clienteGuardado);
+        setCliente(clienteDecoded);
+      }
   
       if (carritoGuardado) {
-        setCarrito(carritoGuardado);
+        const carritoDecoded = isBase64(carritoGuardado) ? JSON.parse(atob(carritoGuardado)) : JSON.parse(carritoGuardado);
+        setCarrito(carritoDecoded);
       }
     } catch (error) {
       console.error('Error al recuperar datos del localStorage:', error);
     }
   }, []);
   
+  
 
-   
+  const recuperarCarrito = () => {
+    const carritoBase64 = localStorage.getItem('carrito');
+    if (carritoBase64) {
+      const carritoJSON = JSON.parse(atob(carritoBase64));
+      return carritoJSON;
+    } else {
+      return [];  // Si no hay carrito, retornamos un array vacío
+    }
+  };
+  
+  useEffect(() => {
+    const carritoDesdeStorage = recuperarCarrito();
+    setCarrito(carritoDesdeStorage);
+  }, []);  // Este efecto solo se ejecuta una vez al montar el componente
+  
+
+  const recuperarCliente = () => {
+    const clienteBase64 = localStorage.getItem('carrito');
+    if (clienteBase64) {
+      const clienteJSON = JSON.parse(atob(clienteBase64));
+      return clienteJSON;
+    } else {
+      return [];  // Si no hay carrito, retornamos un array vacío
+    }
+  };
+  useEffect(() => {
+    const clienteDeStorage = recuperarCliente();
+    setCarrito(clienteDeStorage);
+  }, []);  // Este efecto solo se ejecuta una vez al montar el componente
+  
 
   
   // Cuenta todos los artículos del carrito
   useEffect(() => {
     const actualizarCant = () => {
-      const cantidad = carrito.reduce((total, item) => total + item.cantGlobal, 0);
+      const cantidad = carrito.length;
       setCantidadCarrito(cantidad);
     };
     actualizarCant();
   }, [carrito, setCantidadCarrito]);
 
-
+{/** 
   const handleAgregar = (producto) => {
   setCarrito(prevCarrito => {
     // Verificamos si el artículo ya existe en el carrito
@@ -141,8 +192,9 @@ export const CarritoProvider = ({ children }) => {
           }
         ];
 
-    // Sincronizamos el carrito con localStorage
-    localStorage.setItem('carrito', JSON.stringify(nuevoCarrito));
+      // Convertimos el carrito a JSON y luego a Base64
+      const carritoBase64 = btoa(JSON.stringify(nuevoCarrito));
+      localStorage.setItem('carrito', carritoBase64);
 
     return nuevoCarrito;
   });
@@ -153,6 +205,35 @@ export const CarritoProvider = ({ children }) => {
     setAlerta(false);
   }, 2000);
 };
+*/}
+
+const handleAgregar = (producto) => {
+  setCarrito(prevCarrito => {
+    // Agregamos el nuevo producto directamente al carrito, sin comprobar si ya existe
+    const nuevoCarrito = [
+      ...prevCarrito,
+      {
+        ...producto, // Agregamos el producto tal cual, sin modificar su cantidad
+        lotesArticulos: producto.lotesArticulos.map(lote => ({
+          ...lote, // Mantenemos los lotes con su cantidadLote original
+        }))
+      }
+    ];
+
+    // Convertimos el carrito a JSON y luego a Base64
+    const carritoBase64 = btoa(JSON.stringify(nuevoCarrito));
+    localStorage.setItem('carrito', carritoBase64);
+
+    return nuevoCarrito;
+  });
+
+  // Activar alerta de agregado al carrito
+  setAlerta(true);
+  setTimeout(() => {
+    setAlerta(false);
+  }, 2000);
+};
+
 
   
   

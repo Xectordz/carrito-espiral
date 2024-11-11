@@ -134,7 +134,7 @@
 .cantidad_lotes{
     font-size: .8rem;
 }
-.lotes_div{
+.lotes_div_carrito{
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -485,4 +485,73 @@
 .div_precioModal{
     display: flex;
     flex-direction: column;
+}
+
+.lotes_div {
+    padding: 1rem 0 0 .5rem;
+    display: flex;
+    flex-direction: column; /* Mantiene los lotes en columna */
+    gap: 1rem; /* Espacio entre cada lote */
+}
+
+.lote {
+    border: solid 2px rgb(207, 207, 207);
+    padding: .5rem 1rem;
+    border-radius: .5rem;
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+    gap: 1rem;
+    width: 100%; /* Asegura que cada lote use todo el ancho disponible */
+}
+.lote.selected{
+    border: solid 2px var(--color-principal);
+}
+.lote_row{
+    display: flex;
+    justify-content: space-between; /* Distribuye el espacio entre los elementos */
+    align-items: center; /* Alinea verticalmente los elementos en el centro */
+    width: 100%; /* Asegura que cada lote use todo el ancho disponible */
+}
+.lote_row span{
+    font-weight: bold;
+}
+.lote_input{
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    gap: .5rem;
+}
+.lote_input input{
+    width: 3.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+}
+.disponibles{
+    background-color: none;
+    font-size: .5;
+    text-align: right;
+    display: flex;
+    justify-content: right;
+}
+.disponibles span{
+    font-weight: bold;
+}
+.lote_radio {
+    display: flex;
+    justify-content: start;
+    gap: 0;
+    align-items: center; /* Centra el radio y el texto verticalmente */
+}
+
+.lotes_div input[type="radio"] {
+    width: 20px; /* Ancho del botón de opción */
+    height: 20px; /* Alto del botón de opción */
+    margin: 0;
+}
+
+.lotes_div label {
+    font-size: 1rem;
+    position: relative;
+    cursor: pointer; /* Cambia el cursor al pasar sobre el texto */
 }

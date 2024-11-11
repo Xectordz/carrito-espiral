@@ -118,7 +118,7 @@ export default function Nav({ activeComponent, setActiveComponent }) {
             <nav className={styles.nav}>
                 <div className={styles.div_menu}>
                     {/*boton Menu actualmente inactivo*/}
-                    <p onClick={toggleMenu} className={`${styles.menu} ${activeComponent === "menu" && styles.active}`}>
+                    <p title='Ver Menu' onClick={toggleMenu} className={`${styles.menu} ${activeComponent === "menu" && styles.active}`}>
                         <RiMenu2Line />
                     </p>
                     <h2 onClick={handleInicio}>EspiralS</h2>
@@ -126,7 +126,7 @@ export default function Nav({ activeComponent, setActiveComponent }) {
                 
                 {showCategorias && <Grupos />} {/* Renderiza el componente de categorías aquí */}
                 <div className={styles.iconos_contenedor}>
-                    <p onClick={toggleBuscar} className={`${styles.buscar} ${activeComponent === "buscar" && styles.active}`}>
+                    <p title={activeComponent === "buscar" ? "Cerrar Busqueda" : "Buscar Articulo"} onClick={toggleBuscar} className={`${styles.buscar} ${activeComponent === "buscar" && styles.active}`}>
                         {
                             activeComponent === "buscar" ? (
                                 <IoMdClose/>
@@ -136,7 +136,7 @@ export default function Nav({ activeComponent, setActiveComponent }) {
                         }
                         
                     </p>
-                    <p onClick={toggleCarrito} className={`${styles.carrito} ${activeComponent === "carrito" && styles.active}`}>
+                    <p title={activeComponent === "carrito" ? "Cerrar Carrito" : "Ver carrito"} onClick={toggleCarrito} className={`${styles.carrito} ${activeComponent === "carrito" && styles.active}`}>
                         {activeComponent === "carrito" ? <IoMdClose /> : <IoCartOutline />}
                         {activeComponent !== "carrito" && <span>{cantidadCarrito}</span>}
                     </p>
