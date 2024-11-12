@@ -8,6 +8,7 @@ export const CarritoProvider = ({ children }) => {
   const [carrito, setCarrito] = useState([]);
   const [cantidadCarrito, setCantidadCarrito] = useState(0);
   const [alerta, setAlerta] = useState(false);
+  const [isVisibleUpbtn, setIsVisibleUpbtn] = useState(false);
   const [view, setView] = useState(() => {
       const viewStorage = localStorage.getItem("view");
       return viewStorage ? JSON.parse(viewStorage) : { grid: true, row: false };
@@ -209,14 +210,15 @@ export const CarritoProvider = ({ children }) => {
 
 const handleAgregar = (producto) => {
   setCarrito(prevCarrito => {
-    // Agregamos el nuevo producto directamente al carrito, sin comprobar si ya existe
+    // Filtramos los lotesArticulos para eliminar aquellos con cantidadLote igual a 0
+    const lotesFiltrados = producto.lotesArticulos.filter(lote => lote.cantidadLote > 0);
+
+    // Agregamos el nuevo producto al carrito solo con los lotes filtrados
     const nuevoCarrito = [
       ...prevCarrito,
       {
-        ...producto, // Agregamos el producto tal cual, sin modificar su cantidad
-        lotesArticulos: producto.lotesArticulos.map(lote => ({
-          ...lote, // Mantenemos los lotes con su cantidadLote original
-        }))
+        ...producto, // Copiamos el producto tal cual
+        lotesArticulos: lotesFiltrados // Solo agregamos los lotes que tienen cantidadLote > 0
       }
     ];
 
@@ -235,9 +237,40 @@ const handleAgregar = (producto) => {
 };
 
 
+
   
   
-  
+  // Función que detecta el scroll y muestra u oculta el botón
+  const handleScroll = () => {
+    // Si el scroll supera los 300px, el botón aparece
+    if (window.scrollY > 300) {
+        setIsVisibleUpbtn(true);
+    } else {
+        setIsVisibleUpbtn(false);
+    }
+};
+
+// Función para hacer scroll hacia arriba
+const scrollToTop = () => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'  // Esto asegura que el scroll hacia arriba sea suave
+    });
+};
+
+// Uso del useEffect para escuchar el evento de scroll
+useEffect(() => {
+  const handleScrollDebounced = () => {
+      handleScroll(); // Llamar a la función de scroll
+  };
+
+  window.addEventListener('scroll', handleScrollDebounced);  // Añadimos el listener para el scroll
+
+  // Cleanup: eliminar el listener cuando el componente se desmonte
+  return () => {
+      window.removeEventListener('scroll', handleScrollDebounced);
+  };
+}, []);
   
 
 
@@ -259,7 +292,10 @@ const handleAgregar = (producto) => {
         setCliente,
         apiURL,
         usuario, 
-        setUsuario
+        setUsuario,
+        isVisibleUpbtn,
+        setIsVisibleUpbtn,
+        scrollToTop
       }}>
 
       {children}

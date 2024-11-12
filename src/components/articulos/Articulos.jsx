@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from "../articulos/articulos.module.css";
 /*hooks de react router*/
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +22,7 @@ import useGrupoLinea from "../../customHook/useGrupoLinea"
 /*Componente Articulos*/
 export default function Articulos() {
   const { lineaId } = useGrupoLinea();
-  const { alerta, handleAgregar, view, setView, apiURL } = useCarrito(); // extraccion de variables o funciones reciclables del contecto carrito
+  const { alerta, handleAgregar, view, setView, apiURL, setCarrito } = useCarrito(); // extraccion de variables o funciones reciclables del contecto carrito
   //const { lineaId } = useParams(); // extraccion del parametro pasado de la ruta anterior que contiene el id de la linea
   const [loading, setLoading] = useState(true); // variable local de loading
   const [articulos, setArticulos] = useState([]); // variable donde se almacenaran los articulos ya filtrados que coinciden con el id de lineas
@@ -32,12 +32,13 @@ export default function Articulos() {
   const [ordenarPor, setOrdenarPor] = useState(false); //variable para activar o desactivar las opciones de ordenar articulos
   const navigate = useNavigate();
   const [lotesArticulos ,setLotesArticulos] = useState([]);
-
+  const ordenarRef = useRef(null);
   const [cantidad, setCantidad] = useState(1);
   const [notas, setNotas] = useState("");
   const [precioArticulo, setPrecioArticulo] = useState(10);
   const [descuento, setDescuento] = useState(0);
   const [total, setTotal] = useState(0);
+
 
   /*funcion que calcula el precio de
     articulo por su cantidad*/
@@ -46,6 +47,7 @@ export default function Articulos() {
       setTotal(precioConDescuento * cantidad); // Calcular el total
   }, [cantidad, precioArticulo, descuento]);
   
+
   /*funcion que realiza el fetch de los articulos
     y filtra solo los que coinciden a la linea
     seleccionada*/
@@ -63,6 +65,24 @@ export default function Articulos() {
         setLoading(false); 
       });
   }, [lineaId]);
+
+
+  // Manejar clics fuera del menú
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+        if (ordenarRef.current && !ordenarRef.current.contains(event.target)) {
+            setOrdenarPor(null);
+        }
+    };
+
+    // Escuchar clics en el documento
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // Limpiar el evento al desmontar el componente
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+}, [ordenarRef]);
 
 
   /*funcion para activar el modal
@@ -84,13 +104,14 @@ export default function Articulos() {
       }, 2000);
       return;
     }
+    
     const itemToAdd = { 
       ...articuloCarrito, 
       cantidad, 
       "cantGlobal": cantidad,
       notas,
       precioArticulo,
-      descuento, 
+      descuento,
       lotesArticulos
     };
     setLotesArticulos([]);
@@ -100,7 +121,6 @@ export default function Articulos() {
     setCantidad(1);
     setDescuento(0);
     setPrecioArticulo(10);
-    console.log(lotesArticulos);
   };
   
 
@@ -115,6 +135,7 @@ export default function Articulos() {
   const closeModal = () => {
     setModal(false);
     setPrecioArticulo(10);
+    setCantidad(1);
   };
 
   useEffect(() => {
@@ -189,14 +210,14 @@ export default function Articulos() {
               </div>
               <div className={styles.ordenar}>
               <p onClick={()=>setOrdenarPor(prev=>!prev)}>Ordenar por </p>
-                <div className={`ordenar_container ${ordenarPor ? "mostrar_ordenar" : ""}`}>
+                <div ref={ordenarRef} className={`ordenar_container ${ordenarPor ? "mostrar_ordenar" : ""}`}>
                     {
                       ordenarPor && (
                         <div>
-                            <p onClick={()=> handleOrdenar("menor")}>Precio(menor a mayor)</p>
-                            <p onClick={()=> handleOrdenar("mayor")}>Precio(mayor a menor)</p>
-                            <p onClick={()=> handleOrdenar("az")}>Nombre(A a Z)</p>
-                            <p onClick={()=> handleOrdenar("za")}>Nombre(Z a A)</p>
+                            <p onClick={()=> handleOrdenar("menor")}>Precio (menor a mayor)</p>
+                            <p onClick={()=> handleOrdenar("mayor")}>Precio (mayor a menor)</p>
+                            <p onClick={()=> handleOrdenar("az")}>Nombre (A a Z)</p>
+                            <p onClick={()=> handleOrdenar("za")}>Nombre (Z a A)</p>
                         </div>
                       )
                     }

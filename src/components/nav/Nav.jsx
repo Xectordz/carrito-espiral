@@ -9,7 +9,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Grupos from '../grupos/Grupos';
 import { useCarrito } from '../../context/CarritoContext';
 
-
 export default function Nav({ activeComponent, setActiveComponent }) {
     const navigate = useNavigate();
     const [lastRoute, setLastRoute] = useState("/");
@@ -17,12 +16,13 @@ export default function Nav({ activeComponent, setActiveComponent }) {
     const [showCategorias, setShowCategorias] = useState(false); // Estado para mostrar categorías
     const [busquedaParam, setBusquedaParam] = useState("");
     const menuRef = useRef(null);
+    const buscarRef = useRef(null);
+    const [isCarritoActive, setIsCarritoActive] = useState(false);
 
     const { cantidadCarrito, usuario } = useCarrito();
 
     const abrirMenu = () => setActiveComponent("menu");
     const cerrarMenu = () => setActiveComponent(null);
-
 
     // Efecto para manejar el activeComponent basado en la ruta
     useEffect(() => {
@@ -31,12 +31,16 @@ export default function Nav({ activeComponent, setActiveComponent }) {
         }
     }, [location.pathname, setActiveComponent]);
     
-
-    // Manejar clics fuera del menú
+    // Manejar clics fuera del menú y buscar
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
+            // Verifica si el clic está fuera del menú o de la búsqueda
+            if (menuRef.current && !menuRef.current.contains(event.target) && activeComponent === "menu") {
                 cerrarMenu();
+            }
+            
+            if (buscarRef.current && !buscarRef.current.contains(event.target) && activeComponent === "buscar") {
+                setActiveComponent(null);
             }
         };
 
@@ -47,16 +51,20 @@ export default function Nav({ activeComponent, setActiveComponent }) {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [menuRef]);
-
+    }, [activeComponent]);  // Solo vuelve a ejecutar si `activeComponent` cambia
 
     const toggleCarrito = () => {
-        if (activeComponent === "carrito") {
-            setActiveComponent(null); // Oculta el carrito
-            navigate(lastRoute); // Navega a la página principal
+        if (isCarritoActive) {
+            setIsCarritoActive(false) // Oculta el carrito
+            // Si la última ruta está disponible, navega a ella, sino navega al inicio
+            if (lastRoute && lastRoute !== "/carrito") {
+                navigate(lastRoute); // Navega a la última ruta
+            } else {
+                navigate("/"); // Navega a la página principal si no hay última ruta
+            }
         } else {
-            setLastRoute(location.pathname); // Guarda la última ruta
-            setActiveComponent("carrito"); // Muestra el carrito
+            setLastRoute(location.pathname);
+            setIsCarritoActive(true); // Muestra el carrito
             navigate("/carrito"); // Navega a la ruta del carrito
         }
     };
@@ -64,7 +72,6 @@ export default function Nav({ activeComponent, setActiveComponent }) {
     const toggleMenu = () => {
         if (activeComponent === "menu") {
             setActiveComponent(null); // Oculta el menú
-            navigate(lastRoute); // Navega a la página principal
         } else {
             setLastRoute(location.pathname);
             setActiveComponent("menu"); // Muestra el menú
@@ -74,7 +81,7 @@ export default function Nav({ activeComponent, setActiveComponent }) {
 
     const handleInicio = () => {
         navigate("/grupos");
-        setActiveComponent("");
+        setActiveComponent(null);
     };
 
     const toggleBuscar = () => {
@@ -85,13 +92,11 @@ export default function Nav({ activeComponent, setActiveComponent }) {
         }
     }
 
-
-
     const handleBusqueda = (e) => {
         e.preventDefault();
         navigate(`/busqueda/results/${busquedaParam}`);
-        setActiveComponent("");
-        setBusquedaParam("")
+        setActiveComponent(null);
+        setBusquedaParam("");
     }
 
     const handleCerrarSesion = () => {
@@ -111,7 +116,6 @@ export default function Nav({ activeComponent, setActiveComponent }) {
         navigate("/ordenCompra");
         cerrarMenu();
     }
-
 
     return (
         <div className={styles.container}>
@@ -134,33 +138,30 @@ export default function Nav({ activeComponent, setActiveComponent }) {
                                 <IoIosSearch/>
                             )
                         }
-                        
                     </p>
-                    <p title={activeComponent === "carrito" ? "Cerrar Carrito" : "Ver carrito"} onClick={toggleCarrito} className={`${styles.carrito} ${activeComponent === "carrito" && styles.active}`}>
-                        {activeComponent === "carrito" ? <IoMdClose /> : <IoCartOutline />}
-                        {activeComponent !== "carrito" && <span>{cantidadCarrito}</span>}
+                    <p title={isCarritoActive ? "Cerrar Carrito" : "Ver carrito"} onClick={toggleCarrito} className={`${styles.carrito} ${isCarritoActive && styles.active}`}>
+                        {isCarritoActive ? <IoMdClose /> : <IoCartOutline />}
+                        {!isCarritoActive && <span>{cantidadCarrito}</span>}
                     </p>
-                    
-                    
-                    
                 </div>
-            
             </nav>
 
-            <div className={`${styles.menu_dom} ${activeComponent === "menu" ? styles.mostrar_menu : ""}`}>
-                
+            <div ref={menuRef} className={`${styles.menu_dom} ${activeComponent === "menu" ? styles.mostrar_menu : ""}`}>
                 {
                     activeComponent === "menu" && (
                         <>
                             <div className={styles.overlay}></div>
-                            <div className={styles.menu_container} ref={menuRef}>
-                            <p onClick={cerrarMenu} className={styles.close_menu}><IoMdClose/></p>
+                            <div className={styles.menu_container} >
+                                <p onClick={cerrarMenu} className={styles.close_menu}><IoMdClose/></p>
                                 <div className={styles.div_usuario}>
                                     <p className={styles.usuario}>Usuario: <span>{usuario.split(" ")[0]}</span></p>
                                     <p title='Cerrar sesion' onClick={handleCerrarSesion} className={styles.salir}><BiLogOut/></p>
                                 </div>
 
                                 <div className={styles.div_opciones}>
+                                    <div onClick={()=>navigate("/grupos")}>
+                                        <p>Ver Grupos</p>
+                                    </div>
                                     <div onClick={handleVenta}>
                                         <p>Venta</p>
                                     </div>
@@ -174,23 +175,23 @@ export default function Nav({ activeComponent, setActiveComponent }) {
                 }
             </div>
             
-                <div className={`div_buscar ${activeComponent === "buscar" ? "mostrar" : ""}`}>
-                    {
-                        activeComponent === "buscar" && (
-                            <form className={`${styles.buscar_contenedor} ${activeComponent === "buscar" ? styles.activeInput : ''}`}>
-                                <div className={styles.modal_busqueda}>
-                                    <div className={styles.div_busca}>
-                                        <input value={busquedaParam} onChange={(e)=>setBusquedaParam(e.target.value)} type="text" />
-                                        <button disabled={busquedaParam.trim() === ""} onClick={handleBusqueda}>Buscar</button>
-                                    </div>  
-                                </div>
-                            </form>
-                        )
-                    }
-                </div>
-
+            <div ref={buscarRef} className={`div_buscar ${activeComponent === "buscar" ? "mostrar" : ""}`}>
+                {
+                    activeComponent === "buscar" && (
+                        <form className={`${styles.buscar_contenedor} ${activeComponent === "buscar" ? styles.activeInput : ''}`}>
+                            <div className={styles.modal_busqueda}>
+                                <div className={styles.div_busca}>
+                                    <input value={busquedaParam} onChange={(e)=>setBusquedaParam(e.target.value)} type="text" />
+                                    <button disabled={busquedaParam.trim() === ""} onClick={handleBusqueda}>Buscar</button>
+                                </div>  
+                            </div>
+                        </form>
+                    )
+                }
+            </div>
         </div>
     );
 }
+
 
 

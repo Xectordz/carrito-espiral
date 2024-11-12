@@ -142,6 +142,22 @@
     font-size: .7rem;
     font-weight: normal;
 }
+.lotes_carrito::before {
+    content: ""; /* Crea un contenido vacío */
+    display: inline-block; /* Necesario para que podamos aplicar propiedades como el tamaño */
+    width: 5px; /* Define el tamaño del punto */
+    height: 5px; /* Define el tamaño del punto */
+    background-color: #000; /* Define el color del punto */
+    border-radius: 50%; /* Hace que el punto sea un círculo */
+    margin-right: 4px; /* Espacio entre el punto y el texto */
+    vertical-align: middle; /* Alinea verticalmente el punto con el texto */
+  }
+  .container_lotes_carrito{
+    border: solid 1px rgb(190, 190, 190);
+    padding: .2rem .4rem;
+    border-radius: .3rem;
+    margin-top: .2rem;
+  }
 .div_cantidad span{
     font-weight: bold;
 }

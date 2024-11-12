@@ -28,7 +28,7 @@
 .menu_dom{
     opacity: 0;
     transform: translateX(-70px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 .menu_dom.mostrar_menu{
     opacity: 1;

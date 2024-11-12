@@ -42,10 +42,10 @@ export default function Carrito() {
   useEffect(() => {
     if (editarArticulo && articuloEditando) {
         // Recalcular el total con los valores actuales del artículo
-        const nuevoTotal = calcularTotalModal(articuloEditando.precioArticulo, cantidad, articuloEditando.descuento);
+        const nuevoTotal = calcularTotalModal(precio, cantidad, descuento);
         setTotal(nuevoTotal); // Actualizar el estado total con el valor calculado
       }
-  }, [articuloEditando, editarArticulo, cantidad]);  // Recalcular cuando articuloEditando o editarArticulo cambien
+  }, [articuloEditando, editarArticulo, cantidad, precio, descuento]);  // Recalcular cuando articuloEditando o editarArticulo cambien
 
 
   const { carrito, setCarrito, cantidadCarrito, cliente, apiURL } = useCarrito();
@@ -109,32 +109,39 @@ useEffect(() => {
 }, [articuloEditando]);
 
  
-  const restarCantidad = (id) => {
-    const index = carrito.findIndex(item => item.Articulo_id === id);
-    if (index !== -1) {
+  const restarCantidad = (index) => {
+    if (index >= 0 && index < carrito.length && carrito[index].cantGlobal >= 2) {
       const nuevoCarrito = [...carrito];
-      nuevoCarrito[index].cantidad -= 1;
-      if (nuevoCarrito[index].cantidad === 0) {
-        const carritoActualizado = nuevoCarrito.filter(item=>item.Articulo_id !== id);
-        setCarrito(carritoActualizado);
-        localStorage.setItem("carrito", JSON.stringify(carritoActualizado));
-      }else{
-        setCarrito(nuevoCarrito);
-        localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
-      }
+      nuevoCarrito[index].cantGlobal -= 1;
+
+      // Convertir el carrito a JSON y luego codificarlo en Base64
+      const carritoBase64 = btoa(JSON.stringify(nuevoCarrito)); // btoa() codifica a Base64
       
-    }
+      // Guardar el carrito codificado en Base64 en localStorage
+      localStorage.setItem("carrito", carritoBase64);
+      
+      // Actualizar el estado con el nuevo carrito
+      setCarrito(nuevoCarrito);
+  }
   };
 
-  const sumarCantidad = (id) => {
-    const index = carrito.findIndex(item => item.Articulo_id === id);
-    if (index !== -1) {
-      const nuevoCarrito = [...carrito];
-      nuevoCarrito[index].cantidad += 1;
-      setCarrito(nuevoCarrito);
-      localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
+  const sumarCantidad = (index) => {
+    if (index >= 0 && index < carrito.length) {
+        const nuevoCarrito = [...carrito];
+        nuevoCarrito[index].cantGlobal += 1;
+
+        // Convertir el carrito a JSON y luego codificarlo en Base64
+        const carritoBase64 = btoa(JSON.stringify(nuevoCarrito)); // btoa() codifica a Base64
+        
+        // Guardar el carrito codificado en Base64 en localStorage
+        localStorage.setItem("carrito", carritoBase64);
+        
+        // Actualizar el estado con el nuevo carrito
+        setCarrito(nuevoCarrito);
     }
-  };
+};
+
+
 
   const eliminarArticulo = (index) => {
     // Filtra los artículos que no coincidan con el id que deseas eliminar
@@ -150,7 +157,6 @@ useEffect(() => {
     localStorage.setItem("carrito", carritoBase64);
   };
   
-
   const confirmarEliminar = () => {
     localStorage.removeItem("carrito");
     setCarrito([]);
@@ -389,6 +395,8 @@ const handleGuardarArticulo = (item) => {
     return;
   }
 
+  const lotesfiltrados = lotesArticulosEditados.filter(lote=>lote.cantidadLote > 0);
+
   // Si la validación pasa, procedemos a editar el artículo en el carrito
   const editado = carrito.map((articulo, index) =>
     index === indexEditado
@@ -398,7 +406,7 @@ const handleGuardarArticulo = (item) => {
           precioArticulo: precio,
           descuento: descuento,
           cantGlobal: cantidad,
-          lotesArticulos: lotesArticulosEditados,
+          lotesArticulos: lotesfiltrados,
         }
       : articulo
   );
@@ -417,35 +425,37 @@ const handleGuardarArticulo = (item) => {
   setEditarArticulo(false);
   setArticuloEditando(null); 
   setLotesArticulosEditados([]);
+  setCantidadPorLote({});
 };
 
   
 
   // Manejador para cambiar la cantidad en un lote específico
   const handleCantidadLoteChange = (nomalmacen, artdiscretoid, loteClave, value) => {
-    // Asegurarse de que no se sobrepase la disponibilidad
+    // Encuentra el lote correspondiente con la clave
     const lote = lotes.find(l => l.clave === loteClave);
-  
+    
+    // Verifica que el lote exista y que la cantidad no exceda la existencia disponible
     if (lote && value <= lote.existencia) {
-      // Actualiza cantidadPorLote
+      // Actualiza la cantidad por lote
       setCantidadPorLote(prev => ({
         ...prev,
-        [loteClave]: value
+        [loteClave]: value,
       }));
-      console.log(cantidadPorLote)
-      // Actualiza lotesArticulos solo si el artículo no existe en el array
+  
+      // Actualiza o agrega el artículo en los lotesArticulosEditados
       setLotesArticulosEditados(prev => {
-        
+        // Busca el índice del artículo en el array de lotesArticulosEditados
         const index = prev.findIndex(item => item.artdiscretoid === artdiscretoid);
   
         if (index === -1) {
-          // Si no existe, agregar nuevo artículo
+          // Si el artículo no existe, agrega un nuevo objeto con la cantidadLote
           return [
             ...prev,
-            { nomalmacen, artdiscretoid, cantidadLote: value }
+            { nomalmacen, artdiscretoid, cantidadLote: value },
           ];
         } else {
-          // Si ya existe, actualizar la cantidad
+          // Si el artículo ya existe, actualiza la cantidadLote
           const newLotesArticulos = [...prev];
           newLotesArticulos[index] = { ...newLotesArticulos[index], cantidadLote: value };
           return newLotesArticulos;
@@ -453,13 +463,13 @@ const handleGuardarArticulo = (item) => {
       });
     }
   };
+  
 
   // formatear la fecha que trae el lote
   const formatearFecha = (fecha) => {
     const fechaObj = new Date(fecha); // Convierte la fecha a un objeto Date
     return fechaObj.toLocaleDateString('es-ES'); // Devuelve la fecha en formato 'dd/mm/yyyy'
   };
-  
   
 
   return (
@@ -495,24 +505,36 @@ const handleGuardarArticulo = (item) => {
                     </div>
                     <div className={styles.div_cantidad}>
                       <p>Cant. total: <span>{item.cantGlobal}</span></p>
-                      <div className={styles.lotes_div_carrito}>
-                          { item.lotesArticulos.length !== 0 && (
+                      
+                      {
+                        item.lotesArticulos.length > 0 && (
+                          <div className={styles.lotes_div_carrito}>
                             <p className={styles.cantidad_lotes}>Cant. por lotes: </p>
-                          )}
-                          {
-                            item.lotesArticulos && item.lotesArticulos.map((lote, index)=>(
-                                <p key={index}>{lote.nomalmacen}: {lote.cantidadLote}</p>
-                            ))
-                          }
-                      </div>
+
+                              <div className={styles.container_lotes_carrito}>
+                              {item.lotesArticulos.map((lote, index) => (
+                                <p className={styles.lotes_carrito} key={index}>
+                                  {lote.nomalmacen}: <span>{lote.cantidadLote}</span>
+                                </p>
+                              ))}
+                              </div>
+                            
+                          </div>
+                        )
+                      }
+
                       
 
-                      {/*}
-                      <div className={styles.div_agregar}>
-                        <p onClick={() => restarCantidad(item.Articulo_id)}>-</p>
-                        <p onClick={() => sumarCantidad(item.Articulo_id)}>+</p>
-                      </div>
-                      */}
+                      {
+                        item.lotesArticulos.length === 0 && (
+                          <div className={styles.div_agregar}>
+                            <p onClick={() => restarCantidad(index)}>-</p>
+                            <p onClick={() => sumarCantidad(index)}>+</p>
+                          </div>
+                        )
+                      }
+                      
+                      
 
 
                     </div>

@@ -52,7 +52,7 @@ export default function Login() {
       setLoading(false);
       setUsuario(loginInputs.user);
       localStorage.setItem("existeUsuario", "true");
-      navigate("/grupos");
+      navigate("/");
     }, 1000);
     
     

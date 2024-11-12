@@ -60,6 +60,29 @@ h4{
     padding: 1rem;
 }
 
+.boton-arriba{
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 2.8rem;
+    height: 2.8rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 2rem;
+    cursor: pointer;
+    opacity: 0; /* El botón comienza oculto */
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+.boton-arriba.visible{
+    opacity: 1;
+}
 .regresar{
     background-color: var(--color-gris);
     width: max-content;
@@ -224,7 +247,7 @@ button span{
 /*estilos de un producto*/
 .productos_contenedor{
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));  /* Ajuste dinámico */
     align-items: center;
     justify-content: center;
     width: 85%;
@@ -232,27 +255,6 @@ button span{
     gap: 1rem;
     text-align: center;
     position: relative;
-}
-@media (min-width: 600px){
-    .productos_contenedor{
-        grid-template-columns: repeat(3, 1fr);
-        max-width: 600px;
-        margin: 2rem auto;
-    }
-}
-@media (min-width: 1000px){
-    .productos_contenedor{
-        grid-template-columns: repeat(4, 1fr);
-        max-width: 700px;
-        margin: 2rem auto;
-    }
-}
-@media (min-width: 1200px){
-    .productos_contenedor{
-        grid-template-columns: repeat(5, 1fr);
-        max-width: 1000px;
-        margin: 2rem auto;
-    }
 }
 .productos_contenedor_row{
     display: grid;
@@ -268,6 +270,7 @@ button span{
 }
 .producto_contenedor{
     width: 100%;
+    max-width: 13rem;
     min-width: 10rem;
     min-height: 17rem;
     margin: 0 auto;
@@ -356,31 +359,15 @@ button span{
 
 .items_contenedor{
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));  /* Ajuste dinámico */
     gap: 1rem;
     width: 90%;
-    max-width: 600px;
+    max-width: 1000px;
     margin: 0 auto;
     padding-bottom: 5rem;
     background-color: var(--color-gris);
 }
-@media(min-width:600px){
-    .items_contenedor{
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-@media(min-width: 1000px){
-    .items_contenedor{
-        grid-template-columns: repeat(4, 1fr);
-        max-width: 700px;
-    }
-}
-@media(min-width: 1200px){
-    .items_contenedor{
-        grid-template-columns: repeat(5, 1fr);
-        max-width: 1000px;
-    }
-}
+
 .item_contenedor{
     width: 100%;
     max-width: 10rem;

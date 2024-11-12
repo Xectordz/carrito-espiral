@@ -56,7 +56,7 @@ export default function Modal({
           // Si no existe, agregar nuevo artículo
           return [
             ...prev,
-            { nomalmacen, artdiscretoid, cantidadLote: value }
+            { nomalmacen, artdiscretoid, cantidadLote: value, "clave":loteClave }
           ];
         } else {
           // Si ya existe, actualizar la cantidad

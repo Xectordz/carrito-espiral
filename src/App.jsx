@@ -9,9 +9,11 @@ import Articulos from "./components/articulos/Articulos";
 import Busqueda from './components/busqueda/Busqueda';
 import { CarritoProvider } from "./context/CarritoContext";
 import Inicio from "./components/inicio/Inicio";
+import { FaArrowUp } from "react-icons/fa";
 import Todos from './components/todos/Todos'
 import Login from './components/login/Login';
 import OrdenCompra from './components/ordenCompra/OrdenCompra';
+import { useCarrito } from './context/CarritoContext';
 
 
 function App() {
@@ -29,12 +31,13 @@ const Main = () => {
   const [activeComponent, setActiveComponent] = useState(null);
   const [redirect, setRedirect] = useState(false);
   const [redirectLogin, setRedirectLogin] = useState(false);
+  const { isVisibleUpbtn, setIsVisibleUpbtn, scrollToTop, setCarrito} = useCarrito();
 
   
   useEffect(() => {
     const existeCliente = localStorage.getItem("existeCliente") === "true";
     const existeUsuario = localStorage.getItem("existeUsuario") === "true";
-
+    
     // Si no hay usuario, redirigir a /login
     if (!existeUsuario) {
       setRedirectLogin(location.pathname !== "/login");
@@ -76,6 +79,14 @@ const Main = () => {
         <Route path="/articulos" element={<Articulos />} />
         <Route path="/busqueda/results/:searchTerm" element={<Busqueda />} />
       </Routes>
+
+      <button
+            onClick={scrollToTop}
+            title="Volver arriba"
+            className={`boton-arriba ${isVisibleUpbtn ? "visible" : ""}`}
+        >
+            <FaArrowUp/>
+        </button>
 
     </>
     

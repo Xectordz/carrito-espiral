@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom';
 import img from "../../../public/tv.jpg";
 import { MdAddShoppingCart } from "react-icons/md";
@@ -26,7 +26,7 @@ export default function Busqueda() {
     const [ordenarPor, setOrdenarPor] = useState(false);
     const navigate = useNavigate();
     const [lotesArticulos ,setLotesArticulos] = useState([]);
-    
+    const ordenarRef = useRef(null);
     const [cantidad, setCantidad] = useState(1);
     const [notas, setNotas] = useState("");
     const [precioArticulo, setPrecioArticulo] = useState(10);
@@ -68,6 +68,24 @@ export default function Busqueda() {
         );
         setFiltrados(resultados);
     }, [articulos, searchTerm]);
+
+
+    // Manejar clics fuera del menú
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+        if (ordenarRef.current && !ordenarRef.current.contains(event.target)) {
+            setOrdenarPor(null);
+        }
+    };
+
+    // Escuchar clics en el documento
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // Limpiar el evento al desmontar el componente
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+}, [ordenarRef]);
 
 
     useEffect(() => {
@@ -129,6 +147,7 @@ export default function Busqueda() {
     const closeModal = () => {
       setModal(false);
       setPrecioArticulo(10);
+      setCantidad(1);
     };
 
 
@@ -194,7 +213,7 @@ export default function Busqueda() {
               </div>
               <div className={styles.ordenar}>
               <p onClick={()=>setOrdenarPor(prev=>!prev)}>Ordenar por </p>
-                <div className={`ordenar_container ${ordenarPor ? "mostrar_ordenar" : ""}`}>
+                <div ref={ordenarRef} className={`ordenar_container ${ordenarPor ? "mostrar_ordenar" : ""}`}>
                     {
                       ordenarPor && (
                         <div>
