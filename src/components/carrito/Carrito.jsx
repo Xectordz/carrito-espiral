@@ -383,7 +383,8 @@ const handleEditarArticulo = (item) => {
 
 
 
-const handleGuardarArticulo = (item) => {
+const handleGuardarArticulo = (e, item) => {
+  e.preventDefault();
   // Calcular la suma de las cantidades de los lotes editados
   const sumaLotes = lotesArticulosEditados.reduce((total, lote) => total + lote.cantidadLote, 0);
 
@@ -567,12 +568,12 @@ const handleGuardarArticulo = (item) => {
                   {editarArticulo && articuloEditando.Articulo_id === item.Articulo_id && (
                     <>
                     <div className="overlay" />
-                    <form className={styles.modal} onSubmit={()=>handleGuardarArticulo(item)}>
+                    <form className={styles.modal} onSubmit={(e)=>handleGuardarArticulo(e, item)}>
                     
-                    <div className={styles.articulo_nombreModal}>
-                        <h5>{item.Nombre}</h5>
-                        <p onClick={()=>setEditarArticulo(false)} className={styles.btn_cerrar}><IoMdClose/></p>
-                    </div>
+                      <div className={styles.articulo_nombreModal}>
+                          <h5>{item.Nombre}</h5>
+                          <p onClick={()=>setEditarArticulo(false)} className={styles.btn_cerrar}><IoMdClose/></p>
+                      </div>
 
                       <div  className={styles.div_modal}>
                           <div className={styles.campos}>
