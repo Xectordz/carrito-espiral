@@ -24,6 +24,14 @@ export default function Nav({ activeComponent, setActiveComponent }) {
     const abrirMenu = () => setActiveComponent("menu");
     const cerrarMenu = () => setActiveComponent(null);
 
+
+    /*Verifica que cuando la ruta cambie y salga de /carrito, se desactive el isCarritoActive*/
+    useEffect(() => {
+        if (location.pathname !== '/carrito') {
+          setIsCarritoActive(false);
+        }
+      }, [location, isCarritoActive]);
+
     // Efecto para manejar el activeComponent basado en la ruta
     useEffect(() => {
         if (location.pathname !== "/carrito" && location.pathname !== "/menu") {

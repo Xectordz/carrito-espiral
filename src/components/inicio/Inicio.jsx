@@ -69,9 +69,6 @@ export default function Inicio() {
     if (exist.length > 0) {
       const nuevoCliente = {
         cliente: exist[0].nombre,
-        fecha: fechaInput,
-        obs: obsInput,
-        clave_cliente: exist[0].clave,
         cliente_id: exist[0].id
       };
       setCliente(nuevoCliente);
@@ -80,7 +77,6 @@ export default function Inicio() {
       localStorage.setItem("existeCliente", "true");
       scrollToTop();
       setAlerta(false);
-      console.log(nuevoCliente);
     } else {
       setAlerta(true);
       setTimeout(() => {

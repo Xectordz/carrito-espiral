@@ -27,7 +27,31 @@ export default function Carrito() {
   const [lotesDisp, setLotesDisp] = useState([]);
   const [indexEditado, setIndexEditado] = useState("");
   const [mensaje, setMensaje] = useState(false);
+  const [ clienteOBJ, setClienteOBJ ] = useState({})
   
+
+  const extraerCliente = () => {
+    /*esto despues sera con un fetch de una api*/
+    const options = [
+      {
+        "id": 13645,
+        "clave": "A1369",
+        "nombre": "Proveedora de la Laguna"
+      },
+      {
+        "id": 53645,
+        "clave": "b1369",
+        "nombre": "Constructira Azteca"
+      }
+    ];
+    const clienteStorage = localStorage.getItem("cliente");
+    const clienteDecodificado = atob(clienteStorage);
+    const clienteEncontrado = options.find(clienteOption => clienteOption.id === clienteDecodificado);
+    setClienteOBJ(clienteEncontrado);
+  }
+  useEffect(()=>{
+    extraerCliente();
+  }, []);
 
   // Función que calcula el total con descuento
   const calcularTotalModal = (precioArticulo, cantidad, descuento) => {

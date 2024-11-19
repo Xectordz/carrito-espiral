@@ -6,6 +6,7 @@ import { FaSpinner } from "react-icons/fa6";
 import { FaEye } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { useCarrito } from "../../context/CarritoContext"
+import CryptoJS from "crypto-js";
 
 
 export default function Login() {
@@ -20,6 +21,44 @@ export default function Login() {
     { user: "hector rodriguez", password: "He123" },
     { user: "espiral", password: 123 }
   ];
+
+  /*CONVERTIR INPUTS A MD5*/
+  const convMD5 = (inputs) => {
+      const userMD5 = CryptoJS.MD5(inputs.user).toString(CryptoJS.enc.Hex);
+      const passwordMD5 = CryptoJS.MD5(inputs.password).toString(CryptoJS.enc.Hex);
+      const objMD5 = {
+        userMD5,
+        passwordMD5
+      }
+      console.log(objMD5);
+      
+      // Enviar el objeto a la API usando fetch
+      fetch('https://api.com/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(objMD5),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Respuesta API:', data);
+      })
+      .catch(error => {
+        console.error('Error al enviar los datos a la API:', error);
+      });
+  }
+
+  /*CONVERTIR INPUTS A SHA256*/
+  const convSHA256 = (inputs) => {
+      const userSHA = CryptoJS.SHA256(inputs.user).toString(CryptoJS.enc.Hex);
+      const passwordSHA = CryptoJS.SHA256(inputs.password).toString(CryptoJS.enc.Hex);
+      const objSHA = {
+        userSHA,
+        passwordSHA
+      }
+      console.log(objSHA);
+  }
 
 
   const handleLogin = (e) => {
@@ -53,6 +92,8 @@ export default function Login() {
       setUsuario(loginInputs.user);
       localStorage.setItem("existeUsuario", "true");
       navigate("/");
+      convMD5(loginInputs);
+      convSHA256(loginInputs);
     }, 1000);
     
     
