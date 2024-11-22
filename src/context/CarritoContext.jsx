@@ -8,7 +8,6 @@ export const CarritoProvider = ({ children }) => {
   const [carrito, setCarrito] = useState([]);
   const [cantidadCarrito, setCantidadCarrito] = useState(0);
   const [alerta, setAlerta] = useState(false);
-  const [isVisibleUpbtn, setIsVisibleUpbtn] = useState(false);
   const [view, setView] = useState(() => {
       const viewStorage = localStorage.getItem("view");
       return viewStorage ? JSON.parse(viewStorage) : { grid: true, row: false };
@@ -23,7 +22,7 @@ export const CarritoProvider = ({ children }) => {
     return storedUsuario ? JSON.parse(storedUsuario) : null;
   });
 
-  const apiURL = "http://192.168.1.114:5000";
+  const apiURL = "http://192.168.1.112:5000";
 
   //
   useEffect(()=> {
@@ -109,6 +108,8 @@ export const CarritoProvider = ({ children }) => {
       return [];  // Si no hay carrito, retornamos un array vacío
     }
   };
+
+
   useEffect(() => {
     const clienteDeStorage = recuperarCliente();
     setCarrito(clienteDeStorage);
@@ -237,44 +238,6 @@ const handleAgregar = (producto) => {
 };
 
 
-
-  
-  
-  // Función que detecta el scroll y muestra u oculta el botón
-  const handleScroll = () => {
-    // Si el scroll supera los 300px, el botón aparece
-    if (window.scrollY > 300) {
-        setIsVisibleUpbtn(true);
-    } else {
-        setIsVisibleUpbtn(false);
-    }
-};
-
-// Función para hacer scroll hacia arriba
-const scrollToTop = () => {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'  // Esto asegura que el scroll hacia arriba sea suave
-    });
-};
-
-// Uso del useEffect para escuchar el evento de scroll
-useEffect(() => {
-  const handleScrollDebounced = () => {
-      handleScroll(); // Llamar a la función de scroll
-  };
-
-  window.addEventListener('scroll', handleScrollDebounced);  // Añadimos el listener para el scroll
-
-  // Cleanup: eliminar el listener cuando el componente se desmonte
-  return () => {
-      window.removeEventListener('scroll', handleScrollDebounced);
-  };
-}, []);
-  
-
-
-
   
 
   return (
@@ -293,9 +256,6 @@ useEffect(() => {
         apiURL,
         usuario, 
         setUsuario,
-        isVisibleUpbtn,
-        setIsVisibleUpbtn,
-        scrollToTop
       }}>
 
       {children}

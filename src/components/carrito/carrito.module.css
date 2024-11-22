@@ -67,7 +67,7 @@
     border: solid 1px rgb(209, 209, 209);
     width: 90%;
     border-radius: .5rem;
-    max-width: 600px;
+    max-width: 500px;
     margin: 0 auto;
     font-size: .9rem;
     box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
@@ -111,11 +111,12 @@
     font-weight: normal;
 }
 .articulo_imagen{
-    background-color: var(--color-gris);
-    filter: brightness(.93);
-    width: 4rem;
-    height: 3rem;
+    width: 100%;
+    max-width: 4rem;
+    height: 4rem;
     margin: 0 auto;
+    object-fit: cover;
+    object-position: center;
 }
 .div_precio{
     display: flex;
@@ -481,7 +482,10 @@
     text-align: center;
 }
 .articulo_img{
-    width: 80%;
+    width: 100%;
+    width: 15rem;
+    object-fit: cover;
+    object-position: center;
     margin: 0 auto;
 }
 .articulo_descripcion{

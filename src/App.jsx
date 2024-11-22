@@ -31,7 +31,7 @@ const Main = () => {
   const [activeComponent, setActiveComponent] = useState(null);
   const [redirect, setRedirect] = useState(false);
   const [redirectLogin, setRedirectLogin] = useState(false);
-  const { isVisibleUpbtn, setIsVisibleUpbtn, scrollToTop, setCarrito} = useCarrito();
+  const { setCarrito } = useCarrito();
 
   
   useEffect(() => {
@@ -79,14 +79,6 @@ const Main = () => {
         <Route path="/articulos" element={<Articulos />} />
         <Route path="/busqueda/results/:searchTerm" element={<Busqueda />} />
       </Routes>
-
-      <button
-            onClick={scrollToTop}
-            title="Volver arriba"
-            className={`boton-arriba ${isVisibleUpbtn ? "visible" : ""}`}
-        >
-            <FaArrowUp/>
-        </button>
 
     </>
     

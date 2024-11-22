@@ -5,8 +5,9 @@ import { useCarrito } from "../../context/CarritoContext";
 import { IoIosSearch } from "react-icons/io";
 import { BiLogOut } from "react-icons/bi";
 
+
 export default function Inicio() {
-  const { setCliente, usuario, setUsuario } = useCarrito();
+  const { setCliente, usuario, setUsuario, apiURL } = useCarrito();
   const [clienteInput, setClienteInput] = useState('');
   const [claveInput, setClaveInput] = useState('');
   const [fechaInput, setFechaInput] = useState('');
@@ -16,24 +17,34 @@ export default function Inicio() {
   const [selectedClienteIndex, setSelectedClienteIndex] = useState(-1);
   const [selectedClaveIndex, setSelectedClaveIndex] = useState(-1);
   const [alerta, setAlerta] = useState(false);
+  const [options, setOptions] = useState([]);
 
-  const options = [
-    {
-      "id": 13645,
-      "clave": "A1369",
-      "nombre": "Proveedora de la Laguna"
-    },
-    {
-      "id": 53645,
-      "clave": "b1369",
-      "nombre": "Constructira Azteca"
-    }
-  ];
+  useEffect(() => {
+    const fetchClientes = async () => {
+      try {
+        const res = await fetch(`${apiURL}/get_catalogos_json/clientes`);
+        const data = await res.json();
+
+        if (res.ok) {
+          setOptions(data);
+        } else {
+          console.log('Hubo un error al obtener los clientes');
+        }
+
+      } catch (error) {
+        console.log("Error de red, o problema al hacer la solicitud", error);
+      }
+    };
+
+    fetchClientes();
+  }, [apiURL]);
 
   const navigate = useNavigate();
   const clienteListRef = useRef();
   const claveListRef = useRef();
   const inputRef = useRef();
+
+  
 
   useEffect(() => {
     const today = new Date();
@@ -69,7 +80,9 @@ export default function Inicio() {
     if (exist.length > 0) {
       const nuevoCliente = {
         cliente: exist[0].nombre,
-        cliente_id: exist[0].id
+        cliente_id: exist[0].clienteid,
+        obs: obsInput,
+        claveCliente: exist[0].clavecliente,
       };
       setCliente(nuevoCliente);
       localStorage.setItem('cliente', JSON.stringify(nuevoCliente));
@@ -96,7 +109,9 @@ export default function Inicio() {
 
   const handleSearchClaveClick = () => {
     if (claveInput) {
-      const coincide = options.filter(option => option.clave.toLowerCase().includes(claveInput.toLowerCase()));
+      const coincide = options.filter(option => 
+        option.clavecliente && option.clavecliente.toLowerCase().includes(claveInput.toLowerCase()) // Solo filtra si `clavecliente` existe
+      );
       setIsClaveListVisible(coincide.length > 0);
       setSelectedClaveIndex(-1);
       inputRef.current.focus();
@@ -104,20 +119,22 @@ export default function Inicio() {
   };
 
   const handleClienteOptionClick = (option) => {
-    setClaveInput(option.clave);
+    setClaveInput(option.clavecliente || ''); // Si no tiene clavecliente, no la asigna
     setClienteInput(option.nombre);
     setIsClienteListVisible(false);
   };
 
   const handleClaveOptionClick = (option) => {
     setClienteInput(option.nombre);
-    setClaveInput(option.clave);
+    setClaveInput(option.clavecliente || ''); // Si no tiene clavecliente, no la asigna
     setIsClaveListVisible(false);
   };
 
   const handleKeyDown = (e) => {
     const filteredClienteOptions = options.filter(option => option.nombre.toLowerCase().includes(clienteInput.toLowerCase()));
-    const filteredClaveOptions = options.filter(option => option.clave.toLowerCase().includes(claveInput.toLowerCase()));
+    const filteredClaveOptions = options.filter(option => 
+      option.clavecliente && option.clavecliente.toLowerCase().includes(claveInput.toLowerCase()) // Solo filtra si `clavecliente` existe
+    );
 
     if (isClienteListVisible) {
       if (e.key === 'ArrowDown' || e.key === "Tab") {
@@ -187,14 +204,14 @@ export default function Inicio() {
               {isClaveListVisible && claveInput && (
                 <ul className={styles.lista_clientes} ref={claveListRef}>
                   {options.filter(option =>
-                    option.clave.toLowerCase().includes(claveInput.toLowerCase())
+                    option.clavecliente && option.clavecliente.toLowerCase().includes(claveInput.toLowerCase()) // Solo muestra aquellos con `clavecliente`
                   ).map((filteredOption, index) => (
                     <li
                       key={filteredOption.id}
                       onClick={() => handleClaveOptionClick(filteredOption)}
                       className={selectedClaveIndex === index ? styles.selected : ''}
                     >
-                      {filteredOption.clave}
+                      {filteredOption.clavecliente}
                     </li>
                   ))}
                 </ul>
@@ -221,7 +238,7 @@ export default function Inicio() {
                     option.nombre.toLowerCase().includes(clienteInput.toLowerCase())
                   ).map((filteredOption, index) => (
                     <li
-                      key={filteredOption.id}
+                      key={filteredOption.clienteid}
                       onClick={() => handleClienteOptionClick(filteredOption)}
                       className={selectedClienteIndex === index ? styles.selected : ''}
                     >
@@ -237,7 +254,7 @@ export default function Inicio() {
             </div>
             <div className={styles.div_fecha}>
               <label>Fecha:</label>
-              <input value={fechaInput} onChange={() => {}} type="text" />
+              <input value={fechaInput} onChange={() => { }} type="text" />
             </div>
             {alerta && (
               <div className={`${styles.alerta_cliente} ${alerta ? styles.mostrar_alerta : ""}`}>
@@ -251,11 +268,3 @@ export default function Inicio() {
     </>
   );
 }
-
-
-
-
-
-
-
-

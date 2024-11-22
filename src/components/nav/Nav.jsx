@@ -13,10 +13,11 @@ export default function Nav({ activeComponent, setActiveComponent }) {
     const navigate = useNavigate();
     const [lastRoute, setLastRoute] = useState("/");
     const location = useLocation();
-    const [showCategorias, setShowCategorias] = useState(false); // Estado para mostrar categorías
+    const [showCategorias, setShowCategorias] = useState(false);
     const [busquedaParam, setBusquedaParam] = useState("");
     const menuRef = useRef(null);
-    const buscarRef = useRef(null);
+    const buscarRef = useRef(null); // Aquí tienes el ref para el contenedor de búsqueda
+    const inputBuscarRef = useRef(null); // Nuevo ref para el input de búsqueda
     const [isCarritoActive, setIsCarritoActive] = useState(false);
 
     const { cantidadCarrito, usuario } = useCarrito();
@@ -24,66 +25,63 @@ export default function Nav({ activeComponent, setActiveComponent }) {
     const abrirMenu = () => setActiveComponent("menu");
     const cerrarMenu = () => setActiveComponent(null);
 
-
-    /*Verifica que cuando la ruta cambie y salga de /carrito, se desactive el isCarritoActive*/
     useEffect(() => {
         if (location.pathname !== '/carrito') {
           setIsCarritoActive(false);
         }
-      }, [location, isCarritoActive]);
+    }, [location, isCarritoActive]);
 
-    // Efecto para manejar el activeComponent basado en la ruta
     useEffect(() => {
         if (location.pathname !== "/carrito" && location.pathname !== "/menu") {
-            setActiveComponent(null); // Restablece activeComponent si no estás en "/carrito"
+            setActiveComponent(null);
         }
     }, [location.pathname, setActiveComponent]);
-    
-    // Manejar clics fuera del menú y buscar
+
+    useEffect(() => {
+        // Si el componente "buscar" se activa, poner el foco en el input
+        if (activeComponent === "buscar" && inputBuscarRef.current) {
+            inputBuscarRef.current.focus();
+        }
+    }, [activeComponent]); // Solo ejecutará cuando activeComponent cambie
+
     useEffect(() => {
         const handleClickOutside = (event) => {
-            // Verifica si el clic está fuera del menú o de la búsqueda
             if (menuRef.current && !menuRef.current.contains(event.target) && activeComponent === "menu") {
                 cerrarMenu();
             }
-            
             if (buscarRef.current && !buscarRef.current.contains(event.target) && activeComponent === "buscar") {
                 setActiveComponent(null);
             }
         };
 
-        // Escuchar clics en el documento
         document.addEventListener('mousedown', handleClickOutside);
-        
-        // Limpiar el evento al desmontar el componente
+
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [activeComponent]);  // Solo vuelve a ejecutar si `activeComponent` cambia
+    }, [activeComponent]);
 
     const toggleCarrito = () => {
         if (isCarritoActive) {
-            setIsCarritoActive(false) // Oculta el carrito
-            // Si la última ruta está disponible, navega a ella, sino navega al inicio
+            setIsCarritoActive(false);
             if (lastRoute && lastRoute !== "/carrito") {
-                navigate(lastRoute); // Navega a la última ruta
+                navigate(lastRoute);
             } else {
-                navigate("/"); // Navega a la página principal si no hay última ruta
+                navigate("/");
             }
         } else {
             setLastRoute(location.pathname);
-            setIsCarritoActive(true); // Muestra el carrito
-            navigate("/carrito"); // Navega a la ruta del carrito
+            setIsCarritoActive(true);
+            navigate("/carrito");
         }
     };
 
     const toggleMenu = () => {
         if (activeComponent === "menu") {
-            setActiveComponent(null); // Oculta el menú
+            setActiveComponent(null);
         } else {
             setLastRoute(location.pathname);
-            setActiveComponent("menu"); // Muestra el menú
-            //navigate("/menu"); // Navega a la ruta del menú
+            setActiveComponent("menu");
         }
     };
 
@@ -93,50 +91,49 @@ export default function Nav({ activeComponent, setActiveComponent }) {
     };
 
     const toggleBuscar = () => {
-        if(activeComponent === "buscar"){
+        if (activeComponent === "buscar") {
             setActiveComponent(null);
-        }else {
+        } else {
             setActiveComponent("buscar");
         }
-    }
+    };
 
     const handleBusqueda = (e) => {
         e.preventDefault();
         navigate(`/busqueda/results/${busquedaParam}`);
         setActiveComponent(null);
         setBusquedaParam("");
-    }
+    };
 
     const handleCerrarSesion = () => {
         navigate("/login");
         localStorage.removeItem("existeUsuario");
         localStorage.removeItem("existeCliente");
         localStorage.removeItem("cliente");
-    }
+    };
 
     const handleVenta = () => {
         setActiveComponent(null);
         localStorage.removeItem("existeCliente");
         navigate("/");
-    }
+    };
 
     const handleOrdenVenta = () => {
         navigate("/ordenCompra");
         cerrarMenu();
-    }
+    };
 
     return (
         <div className={styles.container}>
             <nav className={styles.nav}>
                 <div className={styles.div_menu}>
-                    {/*boton Menu actualmente inactivo*/}
                     <p title='Ver Menu' onClick={toggleMenu} className={`${styles.menu} ${activeComponent === "menu" && styles.active}`}>
                         <RiMenu2Line />
                     </p>
                     <h2 onClick={handleInicio}>EspiralS</h2>
                 </div>
-                
-                {showCategorias && <Grupos />} {/* Renderiza el componente de categorías aquí */}
+
+                {showCategorias && <Grupos />}
                 <div className={styles.iconos_contenedor}>
                     <p title={activeComponent === "buscar" ? "Cerrar Busqueda" : "Buscar Articulo"} onClick={toggleBuscar} className={`${styles.buscar} ${activeComponent === "buscar" && styles.active}`}>
                         {
@@ -182,14 +179,19 @@ export default function Nav({ activeComponent, setActiveComponent }) {
                     )
                 }
             </div>
-            
+
             <div ref={buscarRef} className={`div_buscar ${activeComponent === "buscar" ? "mostrar" : ""}`}>
                 {
                     activeComponent === "buscar" && (
                         <form className={`${styles.buscar_contenedor} ${activeComponent === "buscar" ? styles.activeInput : ''}`}>
                             <div className={styles.modal_busqueda}>
                                 <div className={styles.div_busca}>
-                                    <input value={busquedaParam} onChange={(e)=>setBusquedaParam(e.target.value)} type="text" />
+                                    <input
+                                        ref={inputBuscarRef} // Aquí aplicamos el ref
+                                        value={busquedaParam}
+                                        onChange={(e) => setBusquedaParam(e.target.value)}
+                                        type="text"
+                                    />
                                     <button disabled={busquedaParam.trim() === ""} onClick={handleBusqueda}>Buscar</button>
                                 </div>  
                             </div>
@@ -200,6 +202,3 @@ export default function Nav({ activeComponent, setActiveComponent }) {
         </div>
     );
 }
-
-
-
